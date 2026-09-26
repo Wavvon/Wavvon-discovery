@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 /**
- * Copies one string. The whole flow for adding a bot is "copy this key, paste
+ * Copies one string. The whole flow for adding an app is "copy this key, paste
  * it into your hub", so this is a load-bearing control rather than a nicety.
  */
 export function CopyButton({

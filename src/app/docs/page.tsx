@@ -35,7 +35,7 @@ const SECTION_ICONS: Record<string, React.ReactNode> = {
 /** Libraries do not exist yet. The row marks the spot and states the plan. */
 const LIBRARIES = [
   "Rust — identity, envelopes, wire format",
-  "TypeScript — the same, for clients and bots",
+  "TypeScript — the same, for clients and apps",
 ];
 
 export default function DocsPage() {

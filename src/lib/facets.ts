@@ -38,7 +38,7 @@ export const CLIENT_FEATURES = [
   "video",
   "encrypted-dms",
   "alliances",
-  "bots",
+  "apps",
   "attachments",
   "games",
   "pairing",
@@ -54,7 +54,7 @@ export const FEATURE_LABELS: Record<ClientFeature, string> = {
   video: "Webcam video",
   "encrypted-dms": "End-to-end encrypted DMs",
   alliances: "Alliance channels",
-  bots: "Bots",
+  apps: "Apps & slash commands",
   attachments: "Attachments",
   games: "Games",
   pairing: "Multi-device pairing",
@@ -104,41 +104,3 @@ export function languageName(tag: string): string {
   return FALLBACK_LANGUAGE_NAMES[tag] ?? tag.toUpperCase();
 }
 
-/* Bot capabilities.
- *
- * A closed set, and deliberately so: the detail page shows what a bot did NOT
- * ask for as well as what it did, which only means something if the full list
- * is known here rather than inferred from whatever the listing happens to
- * mention. */
-export const BOT_CAPABILITIES = [
-  "commands",
-  "post-messages",
-  "read-messages",
-  "post-media",
-  "moderate",
-  "mini-apps",
-] as const;
-
-export type BotCapability = (typeof BOT_CAPABILITIES)[number];
-
-export const BOT_CAPABILITY_LABELS: Record<BotCapability, string> = {
-  commands: "Slash commands",
-  "post-messages": "Post messages",
-  "read-messages": "Read messages",
-  "post-media": "Post media",
-  moderate: "Moderate",
-  "mini-apps": "Mini-apps",
-};
-
-export const BOT_CAPABILITY_MEANINGS: Record<BotCapability, string> = {
-  commands: "Registers its commands in the channels you add it to.",
-  "post-messages": "Writes into the channels you add it to.",
-  "read-messages": "Sees the conversation, not only the commands aimed at it.",
-  "post-media": "Uploads images and files.",
-  moderate: "Can time out, kick or ban, within the roles you give it.",
-  "mini-apps": "Opens an embedded view inside the client.",
-};
-
-export function isBotCapability(value: string): value is BotCapability {
-  return (BOT_CAPABILITIES as readonly string[]).includes(value);
-}

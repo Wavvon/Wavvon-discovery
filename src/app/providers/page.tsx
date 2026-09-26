@@ -47,7 +47,7 @@ export default async function ProvidersPage({ searchParams }: { searchParams: Pr
                 How this list works
               </span>
               <p className="text-xs leading-relaxed text-text-faint">
-                Unlike hubs, clients and bots, nobody publishes into this page. It is a file in the
+                Unlike hubs and clients, nobody publishes into this page. It is a file in the
                 directory&rsquo;s own repository, edited by hand — so running your own directory means
                 curating your own list.
               </p>

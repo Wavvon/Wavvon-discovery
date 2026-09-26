@@ -56,8 +56,7 @@ export const DOC_SECTIONS: DocSection[] = [
     entries: [
       d("ws-protocol", "WebSocket protocol"),
       d("wire-format", "Wire format and signed envelopes"),
-      d("bots", "Writing a bot"),
-      d("bot-capability-layer", "Bot capabilities and permissions"),
+      d("apps", "Writing an app"),
       d("gaming", "The sandboxed game SDK"),
       d("hub-discovery", "Running your own directory"),
     ],

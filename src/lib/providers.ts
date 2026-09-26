@@ -8,7 +8,7 @@ import raw from "@/data/providers.json";
  * `src/data/providers.json`, which is also how somebody running their own
  * directory curates a different list.
  *
- * That is a deliberate difference from hubs, clients and bots, which *are*
+ * That is a deliberate difference from hubs and clients, which *are*
  * self-published and signed. Those are things in the network describing
  * themselves; this is an editorial page about businesses. */
 

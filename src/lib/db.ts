@@ -1,7 +1,7 @@
 import Database from "better-sqlite3";
 import path from "path";
 import fs from "fs";
-import type { HubListing, BotListing, BotListingInput, BotCommand, SkinListItem, SkinItem } from "./types";
+import type { HubListing, SkinListItem, SkinItem } from "./types";
 
 // Overridable so a test topology never shares the dev database. A suite that
 // writes into `data/discovery.db` is a suite whose second run disagrees with its
@@ -48,19 +48,7 @@ function migrate(db: Database.Database) {
     CREATE INDEX IF NOT EXISTS idx_hubs_language ON hubs(language);
     CREATE INDEX IF NOT EXISTS idx_hubs_listed_at ON hubs(listed_at);
 
-    CREATE TABLE IF NOT EXISTS bots (
-      pubkey        TEXT PRIMARY KEY,
-      name          TEXT NOT NULL,
-      description   TEXT NOT NULL DEFAULT '',
-      homepage_url  TEXT NOT NULL DEFAULT '',
-      webhook_url   TEXT NOT NULL DEFAULT '',
-      capabilities  TEXT NOT NULL DEFAULT '[]',
-      commands      TEXT NOT NULL DEFAULT '[]',
-      tags          TEXT NOT NULL DEFAULT '[]',
-      listed_at     INTEGER NOT NULL,
-      updated_at    INTEGER NOT NULL
-    );
-    CREATE INDEX IF NOT EXISTS idx_bots_listed_at ON bots(listed_at);
+    DROP TABLE IF EXISTS bots;
 
   `);
 
@@ -242,97 +230,6 @@ export function deleteHub(pubkey: string): boolean {
   return result.changes > 0;
 }
 
-interface BotRow {
-  pubkey: string;
-  name: string;
-  description: string;
-  homepage_url: string;
-  webhook_url: string;
-  capabilities: string;
-  commands: string;
-  tags: string;
-  listed_at: number;
-  updated_at: number;
-}
-
-function botRowToListing(row: BotRow): BotListing {
-  return {
-    ...row,
-    capabilities: JSON.parse(row.capabilities) as string[],
-    commands: JSON.parse(row.commands) as BotCommand[],
-    tags: JSON.parse(row.tags) as string[],
-  };
-}
-
-export function listBots(opts: { search?: string; tag?: string | string[] } = {}): BotListing[] {
-  const db = getDb();
-  const conditions: string[] = [];
-  const params: unknown[] = [];
-
-  if (opts.search) {
-    conditions.push("(name LIKE ? OR description LIKE ?)");
-    params.push(`%${opts.search}%`, `%${opts.search}%`);
-  }
-
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-  const rows = db.prepare(`SELECT * FROM bots ${where} ORDER BY listed_at DESC`)
-    .all(params) as BotRow[];
-
-  let bots = rows.map(botRowToListing);
-
-  const wanted = opts.tag ? (Array.isArray(opts.tag) ? opts.tag : [opts.tag]) : [];
-  if (wanted.length > 0) {
-    bots = bots.filter((b) => wanted.every((t) => b.tags.includes(t)));
-  }
-
-  return bots;
-}
-
-export function getBot(pubkey: string): BotListing | undefined {
-  const db = getDb();
-  const [given, other] = keyVariants(pubkey);
-  const row = db
-    .prepare("SELECT * FROM bots WHERE pubkey = ? OR pubkey = ?")
-    .get(given, other) as BotRow | undefined;
-  return row ? botRowToListing(row) : undefined;
-}
-
-export function upsertBot(data: BotListingInput): void {
-  const db = getDb();
-  const now = Date.now();
-  const existing = getBot(data.pubkey);
-
-  db.prepare(`
-    INSERT INTO bots (pubkey, name, description, homepage_url, webhook_url, capabilities, commands, tags, listed_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ON CONFLICT(pubkey) DO UPDATE SET
-      name = excluded.name,
-      description = excluded.description,
-      homepage_url = excluded.homepage_url,
-      webhook_url = excluded.webhook_url,
-      capabilities = excluded.capabilities,
-      commands = excluded.commands,
-      tags = excluded.tags,
-      updated_at = excluded.updated_at
-  `).run(
-    data.pubkey,
-    data.name,
-    data.description,
-    data.homepage_url,
-    data.webhook_url,
-    JSON.stringify(data.capabilities),
-    JSON.stringify(data.commands),
-    JSON.stringify(data.tags),
-    existing?.listed_at ?? now,
-    now,
-  );
-}
-
-export function deleteBot(pubkey: string): void {
-  const db = getDb();
-  db.prepare("DELETE FROM bots WHERE pubkey = ?").run(pubkey);
-}
-
 // ---- Skins ----
 
 export interface SkinRow {
@@ -456,14 +353,4 @@ export function hubAccessCounts(): { open: number; invite: number } {
     open: rows.find((r) => r.invite_only === 0)?.n ?? 0,
     invite: rows.find((r) => r.invite_only === 1)?.n ?? 0,
   };
-}
-
-export function botTagCounts(): Array<{ value: string; count: number }> {
-  return getDb()
-    .prepare(
-      `SELECT json_each.value AS value, COUNT(*) AS count
-         FROM bots, json_each(bots.tags)
-        GROUP BY value ORDER BY count DESC, value`
-    )
-    .all() as Array<{ value: string; count: number }>;
 }
