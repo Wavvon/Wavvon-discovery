@@ -31,7 +31,7 @@ export const DOCS = {
   operatorGuide: `${DOC_BLOB}/docs/hub-operator-guide.md`,
   hubScaling: `${DOC_BLOB}/docs/hub-scaling.md`,
   client: `${DOC_BLOB}/docs/client.md`,
-  bots: `${DOC_BLOB}/docs/bots.md`,
+  apps: `${DOC_BLOB}/docs/apps.md`,
   wireFormat: `${DOC_BLOB}/docs/wire-format.md`,
   hubDiscovery: `${DOC_BLOB}/docs/hub-discovery.md`,
 } as const;

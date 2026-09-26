@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import Database from "better-sqlite3";
-import { getBot, getHub, initDb, upsertBot, upsertHub } from "../db";
+import { getHub, initDb, upsertHub } from "../db";
 import { keyParam } from "../links";
 
 /* Keys are stored as `ed25519:<hex>` but travel through URLs as bare hex,
@@ -44,22 +44,5 @@ describe("looking a listing up by either spelling", () => {
     expect(getHub(HEX)?.name).toBe("Pixel Foundry");
     expect(getHub(PREFIXED)?.name).toBe("Pixel Foundry");
     expect(getHub("cafe")).toBeNull();
-  });
-
-  it("does the same for bots", () => {
-    upsertBot({
-      pubkey: PREFIXED,
-      name: "Tallyman",
-      description: "",
-      homepage_url: "",
-      webhook_url: "",
-      capabilities: [],
-      commands: [],
-      tags: [],
-    });
-
-    expect(getBot(HEX)?.name).toBe("Tallyman");
-    expect(getBot(PREFIXED)?.name).toBe("Tallyman");
-    expect(getBot("cafe")).toBeUndefined();
   });
 });

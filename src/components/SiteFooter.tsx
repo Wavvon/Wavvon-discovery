@@ -17,7 +17,6 @@ const COLUMNS = [
     links: [
       { label: "Hubs", href: "/hubs" },
       { label: "Clients", href: "/clients" },
-      { label: "Bots", href: "/bots" },
       { label: "Providers", href: "/providers" },
       { label: "Run your own directory", href: GITHUB.discovery },
     ],
@@ -27,7 +26,7 @@ const COLUMNS = [
     links: [
       { label: "Protocol spec", href: DOCS.openapi },
       { label: "Write a client", href: DOCS.client },
-      { label: "Write a bot", href: DOCS.bots },
+      { label: "Write an app", href: DOCS.apps },
       { label: "Wire format", href: DOCS.wireFormat },
     ],
   },

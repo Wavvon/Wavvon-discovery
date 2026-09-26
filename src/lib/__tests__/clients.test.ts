@@ -24,7 +24,7 @@ function doc(overrides: Partial<ClientDoc> = {}): ClientDoc {
     languages: ["en", "fr"],
     features: {
       voice: { support: "full" },
-      bots: { support: "partial", note: "commands only" },
+      apps: { support: "partial", note: "commands only" },
       games: { support: "none" },
     },
     ...overrides,
@@ -46,7 +46,7 @@ describe("client listings", () => {
     register();
     const stored = getClient("id-ripple");
     expect(stored?.name).toBe("Ripple");
-    expect(stored?.doc.features.bots.note).toBe("commands only");
+    expect(stored?.doc.features.apps.note).toBe("commands only");
     expect(stored?.platforms).toEqual(["windows", "linux"]);
   });
 
@@ -55,7 +55,7 @@ describe("client listings", () => {
     // `games` is declared as "none" — information for the detail page, but it
     // must never make the client match a "supports games" filter.
     expect(listClients({ feature: "voice" })).toHaveLength(1);
-    expect(listClients({ feature: "bots" })).toHaveLength(1);
+    expect(listClients({ feature: "apps" })).toHaveLength(1);
     expect(listClients({ feature: "games" })).toHaveLength(0);
   });
 

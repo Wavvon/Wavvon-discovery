@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { listBots, listHubs } from "@/lib/db";
+import { listHubs } from "@/lib/db";
 import { countClients } from "@/lib/clients-db";
 import { PillLink } from "@/components/ui";
 import { DOCS } from "@/lib/links";
@@ -78,7 +78,6 @@ export default function HomePage() {
   const counts = [
     { value: listHubs({}).total, label: "hubs listed", href: "/hubs" },
     { value: countClients(), label: "clients", href: "/clients" },
-    { value: listBots({}).length, label: "bots", href: "/bots" },
   ];
 
   return (
@@ -181,7 +180,7 @@ export default function HomePage() {
               },
               {
                 eyebrow: "I want to build",
-                title: "Write a client or a bot",
+                title: "Write a client or an app",
                 body: "The whole protocol is plain HTTP and WebSocket, specified in an OpenAPI document. No SDK required, no partner programme, no key to apply for.",
                 cta: { href: DOCS.openapi, label: "Protocol spec", primary: false },
                 aside: { href: "/clients", label: "or see what others built →" },

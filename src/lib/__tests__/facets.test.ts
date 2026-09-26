@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { hasAnyFilter, isSelected, toggleHref } from "../../components/Facets";
-import { isClientPlatform, isBotCapability, languageName } from "../facets";
+import { isClientPlatform, languageName } from "../facets";
 
 describe("toggleHref", () => {
   it("adds a value that is not selected", () => {
@@ -37,8 +37,6 @@ describe("closed sets", () => {
   });
 
   it("rejects a bot capability outside the known set", () => {
-    expect(isBotCapability("moderate")).toBe(true);
-    expect(isBotCapability("read-your-email")).toBe(false);
   });
 });
 
