@@ -29,7 +29,7 @@ export async function PUT(req: NextRequest, { params }: Ctx) {
     return NextResponse.json({ error: "hub_pubkey mismatch" }, { status: 400 });
   }
 
-  const err = await validateAndUpsert(body, true);
+  const err = await validateAndUpsert(body);
   if (err) return err;
 
   return NextResponse.json(getHub(pubkey));

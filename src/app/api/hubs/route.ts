@@ -3,7 +3,6 @@ import { listHubs, upsertHub } from "@/lib/db";
 import { verifySignature } from "@/lib/verify";
 import { fetchHubInfo } from "@/lib/scrape";
 import { buildCanonicalPayload, currentNonce } from "@/lib/canonical";
-import { getUptime7d } from "@/lib/uptime";
 import type { SubmitPayload } from "@/lib/types";
 
 export async function GET(req: NextRequest) {
@@ -18,11 +17,7 @@ export async function GET(req: NextRequest) {
     language,
     page,
   });
-  const hubs = result.hubs.map((hub) => ({
-    ...hub,
-    uptime_7d: getUptime7d(hub.hub_pubkey),
-  }));
-  return NextResponse.json({ ...result, hubs });
+  return NextResponse.json(result);
 }
 
 export async function POST(req: NextRequest) {
@@ -33,13 +28,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const err = await validateAndUpsert(body, false);
+  const err = await validateAndUpsert(body);
   if (err) return err;
 
   return NextResponse.json({ ok: true }, { status: 201 });
 }
 
-export async function validateAndUpsert(body: SubmitPayload, _isUpdate: boolean) {
+export async function validateAndUpsert(body: SubmitPayload) {
   const { hub_url, tags, language, bio, invite_code, canonical_payload, hub_pubkey, signature } = body;
 
   if (!hub_url || !hub_pubkey || !signature || !canonical_payload) {

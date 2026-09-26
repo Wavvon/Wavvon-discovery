@@ -1,7 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # Claude Code
-.claude/
+.claude/settings.local.json
 
 # database — local runtime data, never committed
 /data

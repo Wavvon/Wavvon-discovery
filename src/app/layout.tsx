@@ -1,68 +1,28 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import Link from "next/link";
+import { Inter, JetBrains_Mono } from "next/font/google";
+import { SiteHeader } from "@/components/SiteHeader";
+import { SiteFooter } from "@/components/SiteFooter";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
+const jetbrainsMono = JetBrains_Mono({ variable: "--font-jetbrains-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Wavvon Hub Directory",
-  description: "Discover and share Wavvon communities",
+  title: {
+    default: "Wavvon",
+    template: "%s · Wavvon",
+  },
+  description:
+    "An open network for communities that host themselves. Voice, text and end-to-end encrypted messaging across independent servers.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col bg-neutral-950 text-neutral-100">
-        <header className="border-b border-neutral-800 px-6 py-3 flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2 font-bold text-lg">
-            Wavvon
-          </Link>
-          <nav className="flex items-center gap-4 text-sm text-neutral-400">
-            <Link href="/" className="hover:text-neutral-100 transition-colors">Hubs</Link>
-            <a href="/bots" className="hover:text-neutral-100 transition-colors">Bots</a>
-            <a href="/templates" className="hover:text-neutral-100 transition-colors">Templates</a>
-            <a href="/farms" className="hover:text-neutral-100 transition-colors">Farms</a>
-            <a href="/clients" className="hover:text-neutral-100 transition-colors">Clients</a>
-            <a href="/analytics" className="hover:text-neutral-100 transition-colors">Analytics</a>
-          </nav>
-          <div className="ml-auto flex items-center gap-3 text-sm">
-            <a href="/submit" className="text-neutral-400 hover:text-neutral-100 transition-colors">
-              List your hub →
-            </a>
-            <a
-              href="/bots/submit"
-              className="text-neutral-400 hover:text-neutral-100 transition-colors"
-            >
-              List your bot →
-            </a>
-            <a
-              href="/new"
-              className="px-3 py-1.5 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white transition-colors"
-            >
-              Create hub →
-            </a>
-          </div>
-        </header>
-        <main className="flex-1">{children}</main>
-        <footer className="border-t border-neutral-800 px-6 py-4 text-xs text-neutral-500 text-center">
-          Wavvon — decentralized voice &amp; community
-        </footer>
+    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable} h-full`}>
+      <body className="flex min-h-full flex-col">
+        <SiteHeader />
+        <main className="flex flex-1 flex-col">{children}</main>
+        <SiteFooter />
       </body>
     </html>
   );

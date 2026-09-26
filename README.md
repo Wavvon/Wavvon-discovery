@@ -15,17 +15,31 @@ your own directory for your own network.
 
 ## What it does
 
-- **Hub directory** — operators submit their hub (`/submit`); listings
-  are Ed25519-signed by the hub's own key, so only a hub can publish or
-  update its profile. Browse and search with uptime tracking.
-- **Hub creation wizard** (`/new`) — pick a config template and get a
-  ready-to-boot hub bootstrap.
-- **Farm catalog** — browse public farms (multi-hub deployments).
-- **Bot directory** — published bots, invitable by public key.
-- **Skins gallery** — community `.wavvonskin` themes, signed by their
-  authors, shown in the Appearance tab of every client.
-- **Config template catalog** — signed channel/role templates for new
-  hubs.
+Four public surfaces, plus the docs index that ties them together.
+
+- **Hubs** (`/hubs`) — communities that chose to be listed. Each entry is
+  Ed25519-signed by the hub's own key, so only that hub can publish, change
+  or remove it. Search plus filters for tag, language and whether it is
+  invite-only.
+- **Clients** (`/clients`) — anything that speaks the protocol. Filter by
+  platform, by the features it implements, and by the languages its interface
+  is translated into. Each has a page with a support table and its maintainer.
+- **Bots** (`/bots`) — published bots, added to a hub by pasting their public
+  key. A bot publishes its own listing signed with that key, the way a hub
+  does. The detail page lists its commands and, just as usefully, the
+  permissions it did *not* ask for.
+- **Providers** (`/providers`) — companies that will run a hub for you, if you
+  would rather not run a server. A curated file (`src/data/providers.json`),
+  not a registry: listed offers, not endorsements, and nobody publishes into it.
+- **Docs** (`/docs`) — an index over
+  [Wavvon-docs](https://github.com/Wavvon/Wavvon-docs), with each page rendered
+  here from its markdown source.
+- **Skins** — community `.wavvonskin` themes, signed by their authors and
+  served over the API to the Appearance tab of every client.
+
+The site never probes a hub. A listing that has gone stale is reported by
+whoever noticed, which costs nothing and scales with readers rather than with
+the size of the catalogue.
 
 ## Run it
 
@@ -47,9 +61,12 @@ npm start
 ```
 
 State lives in a single SQLite database at `./data/discovery.db`
-(created automatically). To enable hub uptime tracking, point a cron
-job at `POST /api/internal/ping-hubs` and set the `CRON_SECRET`
-environment variable to guard it.
+(created automatically); set `WAVVON_DISCOVERY_DATA_DIR` to put it
+elsewhere. There is no cron job and no scheduled work of any kind.
+
+Documentation pages are fetched from the Wavvon-docs repository at build
+time and revalidated hourly. If that fetch fails the page says so and
+links to GitHub, so the site still builds with no network.
 
 Hubs choose which directory they announce to via the `discovery_url`
 setting in [Wavvon-server](https://github.com/Wavvon/Wavvon-server).

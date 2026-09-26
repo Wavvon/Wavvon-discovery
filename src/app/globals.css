@@ -1,26 +1,297 @@
 @import "tailwindcss";
 
+/* Design tokens.
+ *
+ * Lifted from the client design system — clients/packages/ui/src/styles.css,
+ * theme "linear", which is the variant that already matches the brand
+ * (near-black ground, violet accent). Discovery adds no colours of its own
+ * beyond `--accent-sunken`, the tinted fill behind an accented avatar.
+ *
+ * Values are duplicated rather than imported because this repo is meant to be
+ * cloned and run on its own, with no sibling checkout. If a token changes over
+ * there, change it here in the same commit. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #0c0d11;
+  --bg-elevated: #14151a;
+  --bg-sunken: #08090c;
+  --surface: #1a1c22;
+  --surface-hover: #23252d;
+  --border: #282a32;
+  --border-strong: #3a3d47;
+  --border-hairline: #1e2027;
+  --text: #f7f7fa;
+  --text-dim: #c9cbd4;
+  --text-muted: #8a8c98;
+  --text-faint: #54565f;
+  --text-ghost: #3a3d47;
+  --accent: #a78bfa;
+  --accent-hover: #8b6ff4;
+  --accent-text: #0c0d11;
+  --accent-border: #3a3350;
+  --accent-sunken: #2a2140;
+  --ring: rgba(167, 139, 250, 0.45);
+  --info: #5eb3f0;
+  --success: #4cb782;
+  --success-bg: #13291f;
+  --success-border: #1e4433;
+  --warning: #f5b94e;
+  --warning-bg: #241d0f;
+  --warning-border: #3d3115;
+  --danger: #eb5757;
+
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-xl: 14px;
+  --r-pill: 999px;
+
+  --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.42);
+  --transition-fast: 120ms ease-out;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-bg-sunken: var(--bg-sunken);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-border-hairline: var(--border-hairline);
+  --color-text: var(--text);
+  --color-text-dim: var(--text-dim);
+  --color-text-muted: var(--text-muted);
+  --color-text-faint: var(--text-faint);
+  --color-text-ghost: var(--text-ghost);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-text: var(--accent-text);
+  --color-accent-border: var(--accent-border);
+  --color-accent-sunken: var(--accent-sunken);
+  --color-info: var(--info);
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-success-border: var(--success-border);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-warning-border: var(--warning-border);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--accent-hover);
+}
+
+/* Inputs and buttons inherit the page font rather than the browser default. */
+input,
+select,
+textarea,
+button {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+input,
+select,
+textarea {
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
+a:focus-visible,
+button:focus-visible,
+label:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+button {
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Rendered documentation.
+ *
+ * Hand-written rather than @tailwindcss/typography: the type scale is settled
+ * in the design and a plugin would have to be argued back down to it. */
+.doc-prose {
+  color: var(--text-muted);
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.doc-prose > * + * {
+  margin-top: 16px;
+}
+
+.doc-prose h2,
+.doc-prose h3,
+.doc-prose h4 {
+  color: var(--text);
+  scroll-margin-top: 88px;
+}
+
+.doc-prose h2 {
+  margin-top: 40px;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.6px;
+  line-height: 1.25;
+}
+
+.doc-prose h3 {
+  margin-top: 32px;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+
+.doc-prose h4 {
+  margin-top: 24px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.doc-prose strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.doc-prose ul,
+.doc-prose ol {
+  padding-left: 22px;
+}
+
+.doc-prose li + li {
+  margin-top: 8px;
+}
+
+.doc-prose ul { list-style: disc; }
+.doc-prose ol { list-style: decimal; }
+
+.doc-prose code {
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 1px 5px;
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 0.87em;
+  color: var(--text-dim);
+}
+
+.doc-prose pre {
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 16px 18px;
+  /* Long lines scroll inside the block rather than widening the page. */
+  overflow-x: auto;
+}
+
+.doc-prose pre code {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-dim);
+}
+
+.doc-prose blockquote {
+  border-left: 3px solid var(--accent-border);
+  padding-left: 16px;
+  color: var(--text-faint);
+}
+
+.doc-prose hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin-top: 32px;
+}
+
+.doc-prose table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.doc-prose th,
+.doc-prose td {
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.doc-prose th {
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.doc-prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--r-md);
 }
