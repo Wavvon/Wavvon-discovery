@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
 
   const pubkey = normalizeIdentityKey(doc.pubkey)!;
   if (!registerIdentity(pubkey, doc, payload)) {
-    return NextResponse.json({ error: "A newer listing for this key is already published" }, { status: 409 });
+    return NextResponse.json({ error: "A listing for this key at least as new was already published or removed" }, { status: 409 });
   }
   return NextResponse.json({ ok: true, pubkey }, { status: 201 });
 }

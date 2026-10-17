@@ -223,4 +223,16 @@ describe("removing an identity", () => {
     expect((await remove(hex, captured)).status).toBe(403);
     expect(getIdentity(hex)).not.toBeNull();
   });
+
+  it("does not let a captured publish list an identity again once it is removed", async () => {
+    const { secretKey, hex } = await keypair();
+    const captured = doc(hex);
+    await publish(captured, secretKey);
+    await remove(hex, await sign(deleteMessage("identity", hex, 1), secretKey));
+
+    expect((await publish(captured, secretKey)).status).not.toBe(201);
+    expect(getIdentity(hex)).toBeNull();
+    // The owner, publishing something newer, is listed again.
+    expect((await publish(doc(hex, { listed_at: 2 }), secretKey)).status).toBe(201);
+  });
 });

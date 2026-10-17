@@ -37,6 +37,12 @@ export function registerIdentity(pubkey: string, doc: IdentityDoc, payload: stri
     | { listed_at: number }
     | undefined;
   if (existing && existing.listed_at > doc.listed_at) return false;
+  // A deleted listing leaves nothing above to compare against, so without
+  // this a copy of the owner's last publish would list them again.
+  const removed = db.prepare("SELECT listed_at FROM identity_tombstones WHERE pubkey = ?").get(pubkey) as
+    | { listed_at: number }
+    | undefined;
+  if (removed && removed.listed_at >= doc.listed_at) return false;
 
   db.prepare(
     `INSERT INTO identities (pubkey, name, tagline, kind, tags, languages, payload, listed_at, updated_at)
@@ -65,7 +71,15 @@ export function registerIdentity(pubkey: string, doc: IdentityDoc, payload: stri
 }
 
 export function deleteIdentity(pubkey: string): boolean {
-  return getDb().prepare("DELETE FROM identities WHERE pubkey = ?").run(pubkey).changes > 0;
+  const db = getDb();
+  return db.transaction(() => {
+    db.prepare(
+      `INSERT INTO identity_tombstones (pubkey, listed_at)
+       SELECT pubkey, listed_at FROM identities WHERE pubkey = ?
+       ON CONFLICT(pubkey) DO UPDATE SET listed_at = excluded.listed_at`
+    ).run(pubkey);
+    return db.prepare("DELETE FROM identities WHERE pubkey = ?").run(pubkey).changes > 0;
+  })();
 }
 
 /** Accepts either spelling of the key, as a URL carries it without the prefix. */
