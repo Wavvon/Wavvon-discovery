@@ -5,7 +5,7 @@ import { NextRequest } from "next/server";
 import { initDb } from "../db";
 import { getIdentity, listIdentities } from "../identities-db";
 import { isHttpUrl, isPublicHttpsUrl, validateIdentity } from "../identity";
-import { bytesToHex } from "../signed-listing";
+import { bytesToHex, deleteMessage } from "../signed-listing";
 import { POST } from "@/app/api/identities/route";
 import { DELETE } from "@/app/api/identities/[pubkey]/route";
 import type { IdentityDoc } from "../types";
@@ -202,14 +202,25 @@ describe("removing an identity", () => {
     const { secretKey, hex } = await keypair();
     await publish(doc(hex), secretKey);
     const other = await keypair();
-    expect((await remove(hex, await sign(hex, other.secretKey))).status).toBe(403);
+    expect((await remove(hex, await sign(deleteMessage("identity", hex, 1), other.secretKey))).status).toBe(403);
     expect(getIdentity(hex)).not.toBeNull();
   });
 
   it("removes the listing for a valid signature over the key", async () => {
     const { secretKey, hex } = await keypair();
     await publish(doc(hex), secretKey);
-    expect((await remove(hex, await sign(hex, secretKey))).status).toBe(200);
+    expect((await remove(hex, await sign(deleteMessage("identity", hex, 1), secretKey))).status).toBe(200);
     expect(getIdentity(hex)).toBeNull();
+  });
+
+  it("does not let a captured delete remove the listing once it is re-published", async () => {
+    const { secretKey, hex } = await keypair();
+    await publish(doc(hex), secretKey);
+    const captured = await sign(deleteMessage("identity", hex, 1), secretKey);
+    expect((await remove(hex, captured)).status).toBe(200);
+
+    await publish(doc(hex, { listed_at: 2 }), secretKey);
+    expect((await remove(hex, captured)).status).toBe(403);
+    expect(getIdentity(hex)).not.toBeNull();
   });
 });
