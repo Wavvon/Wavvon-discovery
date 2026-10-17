@@ -34,6 +34,7 @@ export const DOCS = {
   apps: `${DOC_BLOB}/docs/apps.md`,
   wireFormat: `${DOC_BLOB}/docs/wire-format.md`,
   hubDiscovery: `${DOC_BLOB}/docs/hub-discovery.md`,
+  inviteDirectory: `${DOC_BLOB}/docs/invite-directory.md`,
 } as const;
 
 /** `wavvon://host[:port][/invite]` — what an installed client answers. */
