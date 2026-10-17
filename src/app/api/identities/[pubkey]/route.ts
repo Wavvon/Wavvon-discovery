@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { deleteIdentity, getIdentity } from "@/lib/identities-db";
 import { keyParam } from "@/lib/links";
-import { verifyListingSignature } from "@/lib/signed-listing";
+import { deleteMessage, verifyListingSignature } from "@/lib/signed-listing";
 
 interface Ctx {
   params: Promise<{ pubkey: string }>;
@@ -14,7 +14,7 @@ export async function GET(_req: NextRequest, { params }: Ctx) {
   return NextResponse.json(identity);
 }
 
-/** The caller signs the bare-hex key, as it appears in the URL, with that same key. */
+/** The caller signs `deleteMessage` over the bare-hex key, as it appears in the URL, with that same key. */
 export async function DELETE(req: NextRequest, { params }: Ctx) {
   const { pubkey } = await params;
   const identity = getIdentity(pubkey);
@@ -23,7 +23,8 @@ export async function DELETE(req: NextRequest, { params }: Ctx) {
   const sig = req.headers.get("x-wavvon-signature");
   if (!sig) return NextResponse.json({ error: "Missing x-wavvon-signature" }, { status: 401 });
 
-  if (!(await verifyListingSignature(keyParam(identity.pubkey), sig, identity.pubkey))) {
+  const message = deleteMessage("identity", keyParam(identity.pubkey), identity.listed_at);
+  if (!(await verifyListingSignature(message, sig, identity.pubkey))) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
   }
 

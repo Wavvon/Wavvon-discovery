@@ -103,7 +103,9 @@ is the deliberate choice — don't "align" it with the server.
 **Every listing is signed, without exception.** A hub signs its own with the
 hub key; a client author and a skin author sign theirs; a bot signs its own
 with the bot key. `src/lib/signed-listing.ts` is the one place that verifies.
-Deletion is proved the same way — a signature over the id — so nobody, this
+Deletion is proved the same way — a signature over `deleteMessage`, which
+names the id *and* the `listed_at` of the listing being removed, so a captured
+delete dies with that listing instead of removing its re-publication — so nobody, this
 directory included, can remove somebody else's listing.
 
 Bots were the exception until 2026-08-28, and it was a hole rather than a
