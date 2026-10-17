@@ -21,9 +21,10 @@ data/            local runtime database — gitignored, never committed
 scripts/
 ```
 
-The public surfaces are `/` (landing), `/hubs`, `/clients`, `/bots`,
-`/providers` and `/docs`. Nothing else exists: no route is unreachable, and
-none should be.
+The public surfaces are `/` (landing), `/hubs`, `/clients`, `/identities`,
+`/providers` and `/docs`. `/bots` is gone: the bot listing left with the bot
+subsystem, and `/identities` is what replaced it. Nothing else exists: no route
+is unreachable, and none should be.
 
 **A hub is self-hosted, and there is no hub-creation flow anywhere.** The
 wizard, the bootstrap tokens and the config-template catalogue are gone: a hub

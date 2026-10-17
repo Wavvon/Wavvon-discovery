@@ -75,6 +75,21 @@ function migrate(db: Database.Database) {
   `);
 
   db.exec(`
+    CREATE TABLE IF NOT EXISTS identities (
+      pubkey     TEXT PRIMARY KEY,
+      name       TEXT NOT NULL,
+      tagline    TEXT NOT NULL DEFAULT '',
+      kind       TEXT NOT NULL,
+      tags       TEXT NOT NULL DEFAULT '[]',
+      languages  TEXT NOT NULL DEFAULT '[]',
+      payload    TEXT NOT NULL,
+      listed_at  INTEGER NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_identities_kind ON identities(kind);
+  `);
+
+  db.exec(`
     CREATE TABLE IF NOT EXISTS skins (
       id             TEXT PRIMARY KEY,
       author_pubkey  TEXT NOT NULL,

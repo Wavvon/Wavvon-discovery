@@ -117,3 +117,44 @@ export interface RegisterClientPayload {
   /** base64url Ed25519 signature over `payload`. */
   sig: string;
 }
+
+/* ── Identities ───────────────────────────────────────────────────────────
+ * The invite directory: a signed `wavvon.identity` document, keyed by the
+ * pubkey it names. Everything here is what the author published. */
+
+export type IdentityKind = "person" | "program";
+
+export interface IdentityCommand {
+  name: string;
+  description: string;
+}
+
+export interface IdentityDoc {
+  format: "wavvon.identity";
+  version: 1;
+  pubkey: string;
+  name: string;
+  tagline: string;
+  description: string;
+  kind: IdentityKind;
+  tags: string[];
+  languages: string[];
+  contact: { home_hub?: string; endpoint?: string };
+  app?: { commands?: IdentityCommand[]; mini_app?: boolean };
+  listed_at: number;
+}
+
+export interface IdentityListItem {
+  pubkey: string;
+  name: string;
+  tagline: string;
+  kind: IdentityKind;
+  tags: string[];
+  languages: string[];
+  listed_at: number;
+  updated_at: string;
+}
+
+export interface IdentityItem extends IdentityListItem {
+  doc: IdentityDoc;
+}
