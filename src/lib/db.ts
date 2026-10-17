@@ -87,6 +87,10 @@ function migrate(db: Database.Database) {
       updated_at TEXT NOT NULL
     );
     CREATE INDEX IF NOT EXISTS idx_identities_kind ON identities(kind);
+    CREATE TABLE IF NOT EXISTS identity_tombstones (
+      pubkey    TEXT PRIMARY KEY,
+      listed_at INTEGER NOT NULL
+    );
   `);
 
   db.exec(`
