@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getHub, deleteHub } from "@/lib/db";
 import { verifySignature } from "@/lib/verify";
 import { deleteMessage } from "@/lib/signed-listing";
-import { fetchHubInfo } from "@/lib/scrape";
 import { validateAndUpsert } from "../route";
 import type { SubmitPayload } from "@/lib/types";
 
@@ -52,14 +51,10 @@ export async function DELETE(req: NextRequest, { params }: Ctx) {
     return NextResponse.json({ error: "hub_pubkey mismatch" }, { status: 400 });
   }
 
-  // Verify ownership before deleting
-  let info;
-  try { info = await fetchHubInfo(hub.hub_url); } catch {
-    return NextResponse.json({ error: "Cannot reach hub to verify ownership" }, { status: 400 });
-  }
-  if (info.public_key !== pubkey) {
-    return NextResponse.json({ error: "hub_pubkey does not match /info" }, { status: 403 });
-  }
+  // The signature by the listed key is the whole proof. Asking the hub's
+  // /info as well added nothing to it and meant a hub that was down, or gone
+  // for good, could never be delisted.
+  //
   // Any payload the hub ever signed used to pass here, a listing among them.
   const valid = await verifySignature(pubkey, body.signature, deleteMessage("hub", pubkey, hub.listed_at));
   if (!valid) return NextResponse.json({ error: "Invalid signature" }, { status: 403 });

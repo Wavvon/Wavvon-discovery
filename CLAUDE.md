@@ -45,7 +45,7 @@ Sibling repos (you don't need them checked out):
 
 | Repo | Contents |
 |---|---|
-| [Wavvon-server](https://github.com/Wavvon/Wavvon-server) | Hub server + the `seed` registry this site queries |
+| [Wavvon-server](https://github.com/Wavvon/Wavvon-server) | Hub server; this site reads each listed hub's `/info` |
 | [Wavvon-clients](https://github.com/Wavvon/Wavvon-clients) | Web + desktop clients |
 | [Wavvon-docs](https://github.com/Wavvon/Wavvon-docs) | Architecture wiki + `openapi.yaml` |
 
@@ -158,7 +158,8 @@ fetching an arbitrary file from the repo, so pages are added by adding lines.
 - No comments in GitHub Actions workflow files — explain the choice in the commit message or the docs.
 - Prefer one fixed home per UI control — avoid context-dependent relocation.
 - Colours, spacing and radii come from `globals.css`, which mirrors the client
-  design system (`clients/packages/ui/src/styles.css`, theme `linear`). Don't
+  design system (`clients/packages/ui/src/styles.css`) as it was before the
+  clients' 2026-10-01 redesign, and have not been re-synced since. Don't
   introduce a colour that isn't a token.
 - Inter for prose, JetBrains Mono for anything a machine emitted — keys, tags,
   counts, dates, filenames.

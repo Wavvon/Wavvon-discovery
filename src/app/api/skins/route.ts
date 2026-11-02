@@ -4,7 +4,8 @@ import { listSkins, registerSkin } from "@/lib/db";
 import { verifySignature } from "@/lib/verify";
 import type { RegisterSkinPayload } from "@/lib/types";
 
-const VALID_BASES = ["calm", "classic", "linear", "light"] as const;
+// The clients' two themes; a skin is an overlay on one of them.
+const VALID_BASES = ["dark", "light"] as const;
 
 // base64url → Uint8Array
 function base64urlToBytes(b64: string): Uint8Array {
