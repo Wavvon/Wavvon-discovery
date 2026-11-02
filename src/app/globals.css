@@ -2,9 +2,9 @@
 
 /* Design tokens.
  *
- * Lifted from the client design system — clients/packages/ui/src/styles.css,
- * theme "linear", which is the variant that already matches the brand
- * (near-black ground, violet accent). Discovery adds no colours of its own
+ * Lifted from the client design system — clients/packages/ui/src/styles.css —
+ * as it was before the clients' 2026-10-01 redesign, when it still had a
+ * near-black, violet-accent theme. Not re-synced since. Discovery adds no colours of its own
  * beyond `--accent-sunken`, the tinted fill behind an accented avatar.
  *
  * Values are duplicated rather than imported because this repo is meant to be
