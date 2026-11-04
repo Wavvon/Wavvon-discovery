@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import Database from "better-sqlite3";
-import { initDb, listHubs } from "../db";
+import { initDb, listHubs, upsertHub } from "../db";
 
 function makeDb(): Database.Database {
   const db = new Database(":memory:");
@@ -179,5 +179,35 @@ describe("listHubs — combined filters", () => {
     const result = listHubs({ language: "en", tag: "gaming" });
     expect(result.total).toBe(1);
     expect(result.hubs[0].hub_pubkey).toBe("pk_en_gaming");
+  });
+});
+
+describe("listHubs — sort by counts", () => {
+  function hub(pk: string, member_count: number | null, online_count: number | null) {
+    upsertHub({
+      hub_pubkey: pk, hub_url: "https://" + pk, name: pk, description: null, icon: null,
+      invite_only: false, min_security_level: 0, invite_code: null, bio: "", tags: [],
+      language: "en", member_count, online_count,
+    });
+  }
+
+  beforeEach(() => {
+    hub("pk_small", 3, 1);
+    hub("pk_unknown", null, null);
+    hub("pk_big", 40, 0);
+  });
+
+  it("orders by members, a missing count after every known one", () => {
+    expect(listHubs({ sort: "members" }).hubs.map((h) => h.hub_pubkey)).toEqual(["pk_big", "pk_small", "pk_unknown"]);
+  });
+
+  it("orders by online, where zero is a count and missing is not", () => {
+    expect(listHubs({ sort: "online" }).hubs.map((h) => h.hub_pubkey)).toEqual(["pk_small", "pk_big", "pk_unknown"]);
+  });
+
+  it("records when the counts were read, and nothing when there were none", () => {
+    const hubs = listHubs().hubs;
+    expect(hubs.find((h) => h.hub_pubkey === "pk_big")?.counts_at).toBeTruthy();
+    expect(hubs.find((h) => h.hub_pubkey === "pk_unknown")?.counts_at).toBeNull();
   });
 });

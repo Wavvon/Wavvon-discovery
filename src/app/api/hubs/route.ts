@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { listHubs, upsertHub } from "@/lib/db";
+import { listHubs, upsertHub, type HubSort } from "@/lib/db";
 import { verifySignature } from "@/lib/verify";
-import { fetchHubInfo } from "@/lib/scrape";
+import { fetchHubInfo, fetchHubCounts } from "@/lib/scrape";
 import { buildCanonicalPayload, currentNonce } from "@/lib/canonical";
 import type { SubmitPayload } from "@/lib/types";
 
@@ -11,11 +11,14 @@ export async function GET(req: NextRequest) {
   const page = Number.isFinite(rawPage) ? Math.min(Math.max(1, rawPage), 1000) : 1;
   const q = searchParams.get("q")?.slice(0, 100) ?? undefined;
   const language = searchParams.get("language")?.slice(0, 10) ?? undefined;
+  const sortParam = searchParams.get("sort");
+  const sort: HubSort = sortParam === "members" || sortParam === "online" ? sortParam : "recent";
   const result = listHubs({
     q,
     tag: searchParams.getAll("tag").map((t) => t.slice(0, 50)),
     language,
     page,
+    sort,
   });
   return NextResponse.json(result);
 }
@@ -85,7 +88,10 @@ export async function validateAndUpsert(body: SubmitPayload) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
   }
 
+  const counts = await fetchHubCounts(hub_url, invite_code);
+
   upsertHub({
+    ...counts,
     hub_pubkey,
     hub_url,
     name: info.name,

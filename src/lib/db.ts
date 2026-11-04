@@ -43,7 +43,10 @@ function migrate(db: Database.Database) {
       tags               TEXT NOT NULL DEFAULT '[]',
       language           TEXT NOT NULL DEFAULT 'en',
       listed_at          TEXT NOT NULL,
-      last_verified_at   TEXT NOT NULL
+      last_verified_at   TEXT NOT NULL,
+      member_count       INTEGER,
+      online_count       INTEGER,
+      counts_at          TEXT
     );
     CREATE INDEX IF NOT EXISTS idx_hubs_language ON hubs(language);
     CREATE INDEX IF NOT EXISTS idx_hubs_listed_at ON hubs(listed_at);
@@ -126,6 +129,9 @@ interface HubRow {
   language: string;
   listed_at: string;
   last_verified_at: string;
+  member_count: number | null;
+  online_count: number | null;
+  counts_at: string | null;
 }
 
 function rowToListing(row: HubRow): HubListing {
@@ -143,7 +149,17 @@ export interface ListOptions {
   /** Undefined means both; true or false narrows to one. */
   inviteOnly?: boolean;
   page?: number;
+  sort?: HubSort;
 }
+
+export type HubSort = "recent" | "members" | "online";
+
+// A hub that published no counts sorts after every hub that did, never as 0.
+const ORDER: Record<HubSort, string> = {
+  recent: "listed_at DESC",
+  members: "member_count IS NULL, member_count DESC, listed_at DESC",
+  online: "online_count IS NULL, online_count DESC, listed_at DESC",
+};
 
 export function listHubs(opts: ListOptions = {}): { hubs: HubListing[]; total: number } {
   const db = getDb();
@@ -177,7 +193,7 @@ export function listHubs(opts: ListOptions = {}): { hubs: HubListing[]; total: n
   }
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-  const rows = db.prepare(`SELECT * FROM hubs ${where} ORDER BY listed_at DESC LIMIT ? OFFSET ?`)
+  const rows = db.prepare(`SELECT * FROM hubs ${where} ORDER BY ${ORDER[opts.sort ?? "recent"]} LIMIT ? OFFSET ?`)
     .all([...params, limit, offset]) as HubRow[];
   const { count } = db.prepare(`SELECT COUNT(*) as count FROM hubs ${where}`)
     .get(params) as { count: number };
@@ -201,8 +217,9 @@ export function getHub(pubkey: string): HubListing | null {
   return row ? rowToListing(row) : null;
 }
 
-export function upsertHub(listing: Omit<HubListing, "listed_at" | "last_verified_at"> & {
+export function upsertHub(listing: Omit<HubListing, "listed_at" | "last_verified_at" | "member_count" | "online_count" | "counts_at"> & {
   listed_at?: string; last_verified_at?: string;
+  member_count?: number | null; online_count?: number | null;
 }): HubListing {
   const db = getDb();
   const now = new Date().toISOString();
@@ -210,8 +227,9 @@ export function upsertHub(listing: Omit<HubListing, "listed_at" | "last_verified
 
   db.prepare(`
     INSERT INTO hubs (hub_pubkey, hub_url, name, description, icon, invite_only,
-      min_security_level, invite_code, bio, tags, language, listed_at, last_verified_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      min_security_level, invite_code, bio, tags, language, listed_at, last_verified_at,
+      member_count, online_count, counts_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(hub_pubkey) DO UPDATE SET
       hub_url = excluded.hub_url,
       name = excluded.name,
@@ -223,7 +241,10 @@ export function upsertHub(listing: Omit<HubListing, "listed_at" | "last_verified
       bio = excluded.bio,
       tags = excluded.tags,
       language = excluded.language,
-      last_verified_at = excluded.last_verified_at
+      last_verified_at = excluded.last_verified_at,
+      member_count = excluded.member_count,
+      online_count = excluded.online_count,
+      counts_at = excluded.counts_at
   `).run(
     listing.hub_pubkey,
     listing.hub_url,
@@ -238,6 +259,9 @@ export function upsertHub(listing: Omit<HubListing, "listed_at" | "last_verified
     listing.language,
     existing?.listed_at ?? now,
     now,
+    listing.member_count ?? null,
+    listing.online_count ?? null,
+    listing.member_count != null || listing.online_count != null ? now : null,
   );
 
   return getHub(listing.hub_pubkey)!;

@@ -12,6 +12,11 @@ export interface HubListing {
   language: string;
   listed_at: string;
   last_verified_at: string;
+  /** Read from the hub's public invite preview; null when it gave none. */
+  member_count: number | null;
+  online_count: number | null;
+  /** When the counts were read. */
+  counts_at: string | null;
 }
 
 export interface InfoResponse {
