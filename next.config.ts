@@ -3,13 +3,13 @@ import type { NextConfig } from "next";
 const dev = process.env.NODE_ENV !== "production";
 
 // Inline scripts stay allowed: the pages are prerendered, so a per-request
-// nonce would cost static rendering. Images are any https host until
-// listings' images are re-served from here.
+// nonce would cost static rendering. Images are this origin or inline: listing
+// screenshots are re-served from here and hub icons are data URIs.
 const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${dev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: https:",
+  "img-src 'self' data:",
   "font-src 'self'",
   `connect-src 'self'${dev ? " ws:" : ""}`,
   "object-src 'none'",
