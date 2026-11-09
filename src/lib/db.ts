@@ -138,8 +138,19 @@ function rowToListing(row: HubRow): HubListing {
   return {
     ...row,
     invite_only: row.invite_only === 1,
-    tags: JSON.parse(row.tags) as string[],
+    name: String(row.name ?? ""),
+    tags: parseTags(row.tags),
   };
+}
+
+// A bad row must cost its own card, never the page.
+function parseTags(raw: string): string[] {
+  try {
+    const tags: unknown = JSON.parse(raw);
+    return Array.isArray(tags) ? tags.filter((t): t is string => typeof t === "string") : [];
+  } catch {
+    return [];
+  }
 }
 
 export interface ListOptions {
