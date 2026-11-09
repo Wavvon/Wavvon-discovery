@@ -35,15 +35,14 @@ export function Avatar({
   accent = false,
 }: {
   name: string;
-  /** Whatever the listing published — an absolute URL or a data URI. */
+  /** Whatever the listing published; only an inline data URI is shown. */
   icon?: string | null;
   size?: number;
   accent?: boolean;
 }) {
-  if (icon) {
+  // A remote icon would show its host every visitor, so only inline images render.
+  if (icon?.startsWith("data:image/")) {
     return (
-      // Supplied by a stranger and served from their host, so it stays a plain
-      // img: no optimizer allowlist to maintain, and no referrer leaked.
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={icon}
