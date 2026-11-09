@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getHub, deleteHub } from "@/lib/db";
 import { verifySignature } from "@/lib/verify";
 import { deleteMessage } from "@/lib/signed-listing";
-import { validateAndUpsert } from "../route";
-import type { SubmitPayload } from "@/lib/types";
+import { readHubSubmission, validateAndUpsert } from "../route";
 
 interface Ctx { params: Promise<{ pubkey: string }> }
 
@@ -18,12 +17,8 @@ export async function PUT(req: NextRequest, { params }: Ctx) {
   const { pubkey } = await params;
   if (!getHub(pubkey)) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  let body: SubmitPayload;
-  try {
-    body = await req.json() as SubmitPayload;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
+  const body = await readHubSubmission(req);
+  if (body instanceof NextResponse) return body;
 
   if (body.hub_pubkey !== pubkey) {
     return NextResponse.json({ error: "hub_pubkey mismatch" }, { status: 400 });
