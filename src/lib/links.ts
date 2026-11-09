@@ -42,7 +42,7 @@ export function deepLink(hubUrl: string, inviteCode?: string | null): string {
   try {
     const u = new URL(hubUrl);
     const host = u.port ? `${u.hostname}:${u.port}` : u.hostname;
-    return `wavvon://${host}${inviteCode ? `/${inviteCode}` : ""}`;
+    return `wavvon://${host}${inviteCode ? `/${encodeURIComponent(inviteCode)}` : ""}`;
   } catch {
     return `wavvon://${hubUrl}`;
   }

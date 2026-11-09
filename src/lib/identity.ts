@@ -4,7 +4,7 @@ export const MAX_IDENTITY_BYTES = 32768;
 
 const KEY_RE = /^[0-9a-f]{64}$/;
 const TAG_RE = /^[a-z0-9][a-z0-9-]{0,31}$/;
-const LANGUAGE_RE = /^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$/;
+export const LANGUAGE_RE = /^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$/;
 
 /** The stored spelling of a key: `ed25519:` plus 64 lowercase hex. Null if it is not one. */
 export function normalizeIdentityKey(key: string): string | null {
@@ -38,6 +38,11 @@ function ipv6Private(host: string): boolean {
   const hi = parseInt(mapped[1], 16);
   const lo = parseInt(mapped[2], 16);
   return ipv4Private(`${hi >> 8}.${hi & 255}.${lo >> 8}.${lo & 255}`);
+}
+
+/** A resolved address (no brackets) that must not be fetched. */
+export function isPrivateAddress(ip: string): boolean {
+  return ip.includes(":") ? ipv6Private(`[${ip}]`) : ipv4Private(ip);
 }
 
 function parseUrl(value: unknown): URL | null {
