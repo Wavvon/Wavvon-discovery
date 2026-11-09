@@ -2,7 +2,10 @@ import { lookup } from "node:dns/promises";
 import { isPrivateAddress } from "./identity";
 import type { InfoResponse } from "./types";
 
-const MAX_BODY_BYTES = 64 * 1024;
+/** /info carries the hub icon as a data URL, so it is not small. */
+const MAX_JSON_BYTES = 1024 * 1024;
+const MAX_ICON_CHARS = 512 * 1024;
+const ICON_RE = /^data:image\/(png|jpeg|webp|gif|svg\+xml);base64,[A-Za-z0-9+/=]+$/;
 
 /** Test topologies run hubs on localhost over http; a public directory never does. */
 export function allowPrivateHubs(): boolean {
@@ -10,12 +13,16 @@ export function allowPrivateHubs(): boolean {
 }
 
 /**
- * GET a URL on a hub's behalf: no redirects, no private address, a bounded
- * body. The URL itself was already checked; this checks what its name
+ * GET a URL on a publisher's behalf: no redirects, no private address, a
+ * bounded body. The URL itself was already checked; this checks what its name
  * resolves to.
  */
 // ponytail: resolve-then-fetch leaves a DNS-rebinding window; pin the address with an undici dispatcher if the directory goes public at scale.
-async function fetchJson(url: string, headers: Record<string, string> = {}): Promise<unknown> {
+export async function fetchCapped(
+  url: string,
+  max: number,
+  headers: Record<string, string> = {},
+): Promise<{ bytes: Buffer; type: string | null }> {
   if (!allowPrivateHubs()) {
     const host = new URL(url).hostname.replace(/^\[|\]$/g, "");
     const addrs = await lookup(host, { all: true });
@@ -30,7 +37,7 @@ async function fetchJson(url: string, headers: Record<string, string> = {}): Pro
     signal: AbortSignal.timeout(8000),
   });
   if (!res.ok) throw new Error(`status ${res.status}`);
-  if (Number(res.headers.get("content-length") ?? 0) > MAX_BODY_BYTES) throw new Error("too large");
+  if (Number(res.headers.get("content-length") ?? 0) > max) throw new Error("too large");
   const reader = res.body?.getReader();
   if (!reader) throw new Error("no body");
   const chunks: Uint8Array[] = [];
@@ -39,13 +46,18 @@ async function fetchJson(url: string, headers: Record<string, string> = {}): Pro
     const { done, value } = await reader.read();
     if (done) break;
     size += value.byteLength;
-    if (size > MAX_BODY_BYTES) {
+    if (size > max) {
       await reader.cancel();
       throw new Error("too large");
     }
     chunks.push(value);
   }
-  return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+  return { bytes: Buffer.concat(chunks), type: res.headers.get("content-type") };
+}
+
+async function fetchJson(url: string, headers: Record<string, string> = {}): Promise<unknown> {
+  const { bytes } = await fetchCapped(url, MAX_JSON_BYTES, headers);
+  return JSON.parse(bytes.toString("utf8"));
 }
 
 const base = (hubUrl: string) => hubUrl.trim().replace(/\/+$/, "");
@@ -59,14 +71,17 @@ export async function fetchHubInfo(hubUrl: string): Promise<InfoResponse> {
     typeof info !== "object" || info === null ||
     typeof info.name !== "string" || info.name.trim() === "" || info.name.length > 100 ||
     !optional(info.description, 1000) ||
-    !optional(info.icon, 2048) ||
     typeof info.public_key !== "string" ||
     typeof info.invite_only !== "boolean" ||
     !Number.isInteger(info.min_security_level)
   ) {
     throw new Error("unusable /info");
   }
-  return info as unknown as InfoResponse;
+  // Only an inline image: a remote icon would show its host every visitor.
+  const icon = typeof info.icon === "string" && info.icon.length <= MAX_ICON_CHARS && ICON_RE.test(info.icon)
+    ? info.icon
+    : null;
+  return { ...info, icon } as unknown as InfoResponse;
 }
 
 export interface HubCounts {

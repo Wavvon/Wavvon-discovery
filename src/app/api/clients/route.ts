@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { listClients, registerClient } from "@/lib/clients-db";
 import { contentId, verifyListingSignature } from "@/lib/signed-listing";
 import { isClientFeature, isClientPlatform } from "@/lib/facets";
+import { isPublicHttpsUrl } from "@/lib/identity";
 import type { ClientDoc, RegisterClientPayload } from "@/lib/types";
 
 const MAX_PAYLOAD_BYTES = 32768;
@@ -65,8 +66,8 @@ function validate(doc: unknown, payloadBytes: number): string | null {
       return `Invalid support value for ${key}`;
     }
   }
-  if (d.screenshots && (!Array.isArray(d.screenshots) || d.screenshots.length > 8)) {
-    return "screenshots must be a list of at most 8 URLs";
+  if (d.screenshots && (!Array.isArray(d.screenshots) || d.screenshots.length > 8 || !d.screenshots.every(isPublicHttpsUrl))) {
+    return "screenshots must be a list of at most 8 public https URLs";
   }
   return null;
 }
