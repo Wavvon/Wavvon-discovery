@@ -1,25 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSkin, deleteSkin } from "@/lib/db";
-import { verifySignature } from "@/lib/verify";
+import { verifyListingSignature, deleteMessage } from "@/lib/signed-listing";
 
 interface Ctx { params: Promise<{ id: string }> }
-
-// Uint8Array → lowercase hex
-function bytesToHex(b: Uint8Array): string {
-  return Array.from(b)
-    .map((x) => x.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-// base64url → Uint8Array
-function base64urlToBytes(b64: string): Uint8Array {
-  const padded = b64.replace(/-/g, "+").replace(/_/g, "/");
-  const pad = padded.length % 4 === 0 ? "" : "=".repeat(4 - (padded.length % 4));
-  const bin = atob(padded + pad);
-  const out = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
-  return out;
-}
 
 export async function GET(_req: NextRequest, { params }: Ctx) {
   const { id } = await params;
@@ -48,21 +31,7 @@ export async function DELETE(req: NextRequest, { params }: Ctx) {
     return NextResponse.json({ error: "author_pubkey does not match" }, { status: 403 });
   }
 
-  // Verify signature over "delete:<id>"
-  const message = `delete:${id}`;
-  let sigHex: string;
-  let pubkeyHex: string;
-  try {
-    sigHex = bytesToHex(base64urlToBytes(body.sig));
-    const rawPubkey = body.author_pubkey.startsWith("ed25519:")
-      ? body.author_pubkey.slice(8)
-      : body.author_pubkey;
-    pubkeyHex = rawPubkey;
-  } catch {
-    return NextResponse.json({ error: "Invalid sig or author_pubkey encoding" }, { status: 400 });
-  }
-
-  const valid = await verifySignature(pubkeyHex, sigHex, message);
+  const valid = await verifyListingSignature(deleteMessage("skin", id, skin.listed_at), body.sig, skin.author_pubkey);
   if (!valid) return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
 
   deleteSkin(id);

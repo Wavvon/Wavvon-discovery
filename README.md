@@ -24,10 +24,10 @@ Four public surfaces, plus the docs index that ties them together.
 - **Clients** (`/clients`) — anything that speaks the protocol. Filter by
   platform, by the features it implements, and by the languages its interface
   is translated into. Each has a page with a support table and its maintainer.
-- **Bots** (`/bots`) — published bots, added to a hub by pasting their public
-  key. A bot publishes its own listing signed with that key, the way a hub
-  does. The detail page lists its commands and, just as usefully, the
-  permissions it did *not* ask for.
+- **Identities** (`/identities`) — people open to invitations and programs
+  asking to be added to hubs. Each listing is signed by the key it names and
+  carries a delivery route (a home hub or an https endpoint); filter by kind,
+  tag and language.
 - **Providers** (`/providers`) — companies that will run a hub for you, if you
   would rather not run a server. A curated file (`src/data/providers.json`),
   not a registry: listed offers, not endorsements, and nobody publishes into it.

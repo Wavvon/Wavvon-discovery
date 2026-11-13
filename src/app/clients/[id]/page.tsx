@@ -135,11 +135,11 @@ export default async function ClientDetailPage({
                 </div>
                 <div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
                   {doc.screenshots.slice(0, 4).map((src, i) => (
-                    // Hosted by the maintainer, not by us — plain img, lazy, no referrer.
+                    // Re-served through this site so the maintainer's host never sees a visitor.
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       key={src}
-                      src={src}
+                      src={`/api/clients/${encodeURIComponent(client.id)}/screenshots/${i}`}
                       alt={`${client.name} screenshot ${i + 1}`}
                       loading="lazy"
                       referrerPolicy="no-referrer"

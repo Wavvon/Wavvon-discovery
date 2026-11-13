@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listHubs } from "@/lib/db";
 import { countClients } from "@/lib/clients-db";
+import { countIdentities } from "@/lib/identities-db";
 import { PillLink } from "@/components/ui";
 import { DOCS } from "@/lib/links";
 
@@ -78,6 +79,7 @@ export default function HomePage() {
   const counts = [
     { value: listHubs({}).total, label: "hubs listed", href: "/hubs" },
     { value: countClients(), label: "clients", href: "/clients" },
+    { value: countIdentities(), label: "identities", href: "/identities" },
   ];
 
   return (

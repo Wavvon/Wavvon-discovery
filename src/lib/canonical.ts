@@ -4,6 +4,8 @@ export interface CanonicalFields {
   language: string;
   bio: string;
   nonce: string;
+  /** Signed when present, so nobody else can rewrite a listing's invite link. */
+  invite_code?: string | null;
 }
 
 // Builds the canonical JSON string that the hub signs with its private key.
@@ -13,6 +15,7 @@ export function buildCanonicalPayload(fields: CanonicalFields): string {
   return JSON.stringify({
     bio: fields.bio,
     hub_url: fields.hub_url,
+    ...(fields.invite_code ? { invite_code: fields.invite_code } : {}),
     language: fields.language,
     nonce: fields.nonce,
     tags: [...fields.tags].sort(),

@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getHub, deleteHub } from "@/lib/db";
 import { verifySignature } from "@/lib/verify";
-import { fetchHubInfo } from "@/lib/scrape";
-import { validateAndUpsert } from "../route";
-import type { SubmitPayload } from "@/lib/types";
+import { deleteMessage } from "@/lib/signed-listing";
+import { readHubSubmission, validateAndUpsert } from "../route";
 
 interface Ctx { params: Promise<{ pubkey: string }> }
 
@@ -18,12 +17,8 @@ export async function PUT(req: NextRequest, { params }: Ctx) {
   const { pubkey } = await params;
   if (!getHub(pubkey)) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  let body: SubmitPayload;
-  try {
-    body = await req.json() as SubmitPayload;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
+  const body = await readHubSubmission(req);
+  if (body instanceof NextResponse) return body;
 
   if (body.hub_pubkey !== pubkey) {
     return NextResponse.json({ error: "hub_pubkey mismatch" }, { status: 400 });
@@ -37,9 +32,10 @@ export async function PUT(req: NextRequest, { params }: Ctx) {
 
 export async function DELETE(req: NextRequest, { params }: Ctx) {
   const { pubkey } = await params;
-  if (!getHub(pubkey)) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const hub = getHub(pubkey);
+  if (!hub) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  let body: { canonical_payload: string; hub_pubkey: string; signature: string };
+  let body: { hub_pubkey: string; signature: string };
   try {
     body = await req.json();
   } catch {
@@ -50,15 +46,12 @@ export async function DELETE(req: NextRequest, { params }: Ctx) {
     return NextResponse.json({ error: "hub_pubkey mismatch" }, { status: 400 });
   }
 
-  // Verify ownership before deleting
-  let info;
-  try { info = await fetchHubInfo(getHub(pubkey)!.hub_url); } catch {
-    return NextResponse.json({ error: "Cannot reach hub to verify ownership" }, { status: 400 });
-  }
-  if (info.public_key !== pubkey) {
-    return NextResponse.json({ error: "hub_pubkey does not match /info" }, { status: 403 });
-  }
-  const valid = await verifySignature(pubkey, body.signature, body.canonical_payload);
+  // The signature by the listed key is the whole proof. Asking the hub's
+  // /info as well added nothing to it and meant a hub that was down, or gone
+  // for good, could never be delisted.
+  //
+  // Any payload the hub ever signed used to pass here, a listing among them.
+  const valid = await verifySignature(pubkey, body.signature, deleteMessage("hub", pubkey, hub.listed_at));
   if (!valid) return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
 
   deleteHub(pubkey);

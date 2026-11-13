@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { listHubs, upsertHub } from "@/lib/db";
+import { listHubs, upsertHub, type HubSort } from "@/lib/db";
 import { verifySignature } from "@/lib/verify";
-import { fetchHubInfo } from "@/lib/scrape";
+import { fetchHubInfo, fetchHubCounts } from "@/lib/scrape";
 import { buildCanonicalPayload, currentNonce } from "@/lib/canonical";
+import { clientAddress, overWriteBudget, readSubmission, validateHubSubmission } from "@/lib/hub-submission";
 import type { SubmitPayload } from "@/lib/types";
 
 export async function GET(req: NextRequest) {
@@ -11,42 +12,49 @@ export async function GET(req: NextRequest) {
   const page = Number.isFinite(rawPage) ? Math.min(Math.max(1, rawPage), 1000) : 1;
   const q = searchParams.get("q")?.slice(0, 100) ?? undefined;
   const language = searchParams.get("language")?.slice(0, 10) ?? undefined;
+  const sortParam = searchParams.get("sort");
+  const sort: HubSort = sortParam === "members" || sortParam === "online" ? sortParam : "recent";
   const result = listHubs({
     q,
     tag: searchParams.getAll("tag").map((t) => t.slice(0, 50)),
     language,
     page,
+    sort,
   });
   return NextResponse.json(result);
 }
 
 export async function POST(req: NextRequest) {
-  let body: SubmitPayload;
-  try {
-    body = await req.json() as SubmitPayload;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
+  const read = await readHubSubmission(req);
+  if (read instanceof NextResponse) return read;
 
-  const err = await validateAndUpsert(body);
+  const err = await validateAndUpsert(read);
   if (err) return err;
 
   return NextResponse.json({ ok: true }, { status: 201 });
 }
 
+/** Rate limit, size cap and JSON parse shared by POST and PUT. */
+export async function readHubSubmission(req: NextRequest): Promise<SubmitPayload | NextResponse> {
+  if (overWriteBudget(clientAddress(req.headers))) {
+    return NextResponse.json({ error: "Too many listing updates, try again later" }, { status: 429 });
+  }
+  const read = await readSubmission(req);
+  if ("error" in read) return NextResponse.json({ error: read.error }, { status: read.status });
+  return read.body as SubmitPayload;
+}
+
 export async function validateAndUpsert(body: SubmitPayload) {
+  const problem = validateHubSubmission(body);
+  if (problem) return NextResponse.json({ error: problem }, { status: 400 });
   const { hub_url, tags, language, bio, invite_code, canonical_payload, hub_pubkey, signature } = body;
 
-  if (!hub_url || !hub_pubkey || !signature || !canonical_payload) {
-    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-  }
-
   // Replay protection: nonce must be within 5 minutes of now
-  let parsed: { nonce?: string } = {};
+  let parsed: { nonce?: unknown } = {};
   try { parsed = JSON.parse(canonical_payload); } catch {
     return NextResponse.json({ error: "Invalid canonical_payload" }, { status: 400 });
   }
-  if (!parsed.nonce) {
+  if (typeof parsed?.nonce !== "string") {
     return NextResponse.json({ error: "Missing nonce in canonical_payload" }, { status: 400 });
   }
   const nonceMs = new Date(parsed.nonce).getTime();
@@ -61,31 +69,34 @@ export async function validateAndUpsert(body: SubmitPayload) {
     language: language ?? "en",
     bio: bio ?? "",
     nonce: parsed.nonce,
+    invite_code,
   });
   if (expected !== canonical_payload) {
     return NextResponse.json({ error: "canonical_payload mismatch" }, { status: 400 });
   }
 
-  // Fetch /info to confirm the hub is reachable and get its public key
-  let info;
-  try {
-    info = await fetchHubInfo(hub_url);
-  } catch (e) {
-    return NextResponse.json({ error: `Cannot reach hub: ${e}` }, { status: 400 });
-  }
-
-  // The hub's public key must match what was submitted
-  if (info.public_key !== hub_pubkey) {
-    return NextResponse.json({ error: "hub_pubkey does not match /info" }, { status: 403 });
-  }
-
-  // Verify signature
+  // The signature first: until it holds, nothing here fetches anything.
   const valid = await verifySignature(hub_pubkey, signature, canonical_payload);
   if (!valid) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
   }
 
+  let info;
+  try {
+    info = await fetchHubInfo(hub_url);
+  } catch {
+    return NextResponse.json({ error: "Cannot reach hub" }, { status: 400 });
+  }
+
+  // The key that signed must be the key the hub at that address presents.
+  if (info.public_key !== hub_pubkey) {
+    return NextResponse.json({ error: "hub_pubkey does not match /info" }, { status: 403 });
+  }
+
+  const counts = await fetchHubCounts(hub_url, invite_code);
+
   upsertHub({
+    ...counts,
     hub_pubkey,
     hub_url,
     name: info.name,

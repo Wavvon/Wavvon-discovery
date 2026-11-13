@@ -17,6 +17,7 @@ const COLUMNS = [
     links: [
       { label: "Hubs", href: "/hubs" },
       { label: "Clients", href: "/clients" },
+      { label: "Identities", href: "/identities" },
       { label: "Providers", href: "/providers" },
       { label: "Run your own directory", href: GITHUB.discovery },
     ],

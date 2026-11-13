@@ -7,6 +7,7 @@ import { Mark } from "./Mark";
 const NAV = [
   { href: "/hubs", label: "Hubs" },
   { href: "/clients", label: "Clients" },
+  { href: "/identities", label: "Identities" },
   { href: "/providers", label: "Providers" },
   { href: "/docs", label: "Docs" },
 ] as const;

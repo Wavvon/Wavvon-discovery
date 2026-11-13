@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { deleteClient, getClient } from "@/lib/clients-db";
-import { verifyListingSignature } from "@/lib/signed-listing";
+import { deleteMessage, verifyListingSignature } from "@/lib/signed-listing";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -22,7 +22,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const sig = req.headers.get("x-wavvon-signature");
   if (!sig) return NextResponse.json({ error: "Missing x-wavvon-signature" }, { status: 401 });
 
-  if (!(await verifyListingSignature(id, sig, client.author_pubkey))) {
+  if (!(await verifyListingSignature(deleteMessage("client", id, client.listed_at), sig, client.author_pubkey))) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
   }
 
