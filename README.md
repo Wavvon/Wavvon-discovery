@@ -1,6 +1,6 @@
 # Wavvon Discovery
 
-[![Release](https://img.shields.io/github/v/release/Wavvon/Wavvon-discovery?sort=semver)](https://github.com/Wavvon/Wavvon-discovery/releases/latest)
+[![Release](https://img.shields.io/github/v/tag/Wavvon/Wavvon-discovery?sort=semver&label=release)](https://github.com/Wavvon/Wavvon-discovery/tags)
 [![Build](https://github.com/Wavvon/Wavvon-discovery/actions/workflows/build.yml/badge.svg)](https://github.com/Wavvon/Wavvon-discovery/actions/workflows/build.yml)
 [![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
 
