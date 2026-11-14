@@ -1,6 +1,8 @@
 # Wavvon Discovery
 
-[![Build check](https://github.com/Wavvon/Wavvon-discovery/actions/workflows/build.yml/badge.svg)](https://github.com/Wavvon/Wavvon-discovery/actions/workflows/build.yml)
+[![Release](https://img.shields.io/github/v/release/Wavvon/Wavvon-discovery?sort=semver)](https://github.com/Wavvon/Wavvon-discovery/releases/latest)
+[![Build](https://github.com/Wavvon/Wavvon-discovery/actions/workflows/build.yml/badge.svg)](https://github.com/Wavvon/Wavvon-discovery/actions/workflows/build.yml)
+[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
 
 The **optional public hub directory** for
 [Wavvon](https://github.com/Wavvon/Wavvon-docs) — an open-source, federated
