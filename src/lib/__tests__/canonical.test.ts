@@ -2,6 +2,13 @@ import { describe, it, expect } from "vitest";
 import { buildCanonicalPayload, currentNonce } from "../canonical";
 
 describe("buildCanonicalPayload", () => {
+  it("signs the theme preview last, byte-for-byte as the hub does", () => {
+    // The string the hub's own test pins (routes/directory.rs).
+    expect(
+      buildCanonicalPayload({ hub_url: "https://h", tags: [], language: "en", bio: "", nonce: "n", theme_preview_url: "https://h/p" }),
+    ).toBe('{"bio":"","hub_url":"https://h","language":"en","nonce":"n","tags":[],"theme_preview_url":"https://h/p"}');
+  });
+
   it("serializes fields in alphabetical key order", () => {
     const payload = buildCanonicalPayload({
       hub_url: "https://hub.example",

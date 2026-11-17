@@ -14,6 +14,14 @@ export function isHubUrl(value: unknown): value is string {
   return url.search === "" && url.hash === "" && !(value as string).includes("?") && !(value as string).includes("#");
 }
 
+/** A hub's theme preview may only be its own preview route: the card shows
+ *  the image, and an arbitrary URL would let a listing point readers anywhere. */
+export function isThemePreviewUrl(value: unknown, hubUrl: string): boolean {
+  if (typeof value !== "string") return false;
+  const prefix = `${hubUrl.replace(/\/+$/, "")}/hub/theme/`;
+  return value.startsWith(prefix) && /^[0-9a-f]{64}\/preview$/.test(value.slice(prefix.length));
+}
+
 /** Anything wrong with the submission's shape, as a message, or null. */
 export function validateHubSubmission(b: unknown): string | null {
   if (typeof b !== "object" || b === null) return "Body must be an object";

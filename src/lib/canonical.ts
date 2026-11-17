@@ -6,6 +6,8 @@ export interface CanonicalFields {
   nonce: string;
   /** Signed when present, so nobody else can rewrite a listing's invite link. */
   invite_code?: string | null;
+  /** Signed when the hub has a default theme with a preview (themes.md §4). */
+  theme_preview_url?: string | null;
 }
 
 // Builds the canonical JSON string that the hub signs with its private key.
@@ -19,6 +21,7 @@ export function buildCanonicalPayload(fields: CanonicalFields): string {
     language: fields.language,
     nonce: fields.nonce,
     tags: [...fields.tags].sort(),
+    ...(fields.theme_preview_url ? { theme_preview_url: fields.theme_preview_url } : {}),
   });
 }
 

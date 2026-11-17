@@ -36,8 +36,11 @@ Four public surfaces, plus the docs index that ties them together.
 - **Docs** (`/docs`) — an index over
   [Wavvon-docs](https://github.com/Wavvon/Wavvon-docs), with each page rendered
   here from its markdown source.
-- **Skins** — community `.wavvonskin` themes, signed by their authors and
-  served over the API to the Appearance tab of every client.
+- **Themes** (`/themes`) — in two sections. Themes for the Wavvon client are
+  signed `wavvon.theme` listings: the theme's metadata, a preview, and a
+  download URL with its SHA-256 (the directory never hosts the package); the
+  official client's theme picker reads them from `/api/themes`. Themes for
+  other clients are a signed name, client, description and link.
 
 The site never probes a hub. A listing that has gone stale is reported by
 whoever noticed, which costs nothing and scales with readers rather than with

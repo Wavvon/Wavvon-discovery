@@ -17,6 +17,8 @@ export interface HubListing {
   online_count: number | null;
   /** When the counts were read. */
   counts_at: string | null;
+  /** The preview of the hub's default theme, signed with the listing. */
+  theme_preview_url?: string | null;
 }
 
 export interface InfoResponse {
@@ -30,6 +32,9 @@ export interface InfoResponse {
 }
 
 export interface SubmitPayload {
+  /** Carried inside the signed canonical payload when the hub has a theme
+   *  with a preview; read from there, never from this field. */
+  theme_preview_url?: string;
   hub_url: string;
   tags: string[];
   language: string;
@@ -40,29 +45,9 @@ export interface SubmitPayload {
   signature: string;
 }
 
-export interface SkinListItem {
-  id: string;
-  author_pubkey: string;
-  name: string;
-  base: string;
-  swatch_bg: string;
-  swatch_surface: string;
-  swatch_accent: string;
-  featured: number;
-  listed_at: number;
-}
-
-export interface SkinItem extends SkinListItem {
-  payload: string;
-}
-
-export interface RegisterSkinPayload {
-  payload: string; // full .wavvonskin JSON
-  sig: string;     // base64url Ed25519 sig over payload bytes
-}
 
 /* ── Clients ──────────────────────────────────────────────────────────────
- * A client listing is a signed document, the same shape of thing a skin is.
+ * A client listing is a signed document, the same shape of thing a theme is.
  * The browse page reads the extracted columns; the detail page reads the
  * whole payload back. */
 
