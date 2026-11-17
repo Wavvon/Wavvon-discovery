@@ -1,7 +1,7 @@
 import Database from "better-sqlite3";
 import path from "path";
 import fs from "fs";
-import type { HubListing, SkinListItem, SkinItem } from "./types";
+import type { HubListing } from "./types";
 
 // Overridable so a test topology never shares the dev database. A suite that
 // writes into `data/discovery.db` is a suite whose second run disagrees with its
@@ -46,7 +46,8 @@ function migrate(db: Database.Database) {
       last_verified_at   TEXT NOT NULL,
       member_count       INTEGER,
       online_count       INTEGER,
-      counts_at          TEXT
+      counts_at          TEXT,
+      theme_preview_url  TEXT
     );
     CREATE INDEX IF NOT EXISTS idx_hubs_language ON hubs(language);
     CREATE INDEX IF NOT EXISTS idx_hubs_listed_at ON hubs(listed_at);
@@ -55,7 +56,7 @@ function migrate(db: Database.Database) {
 
   `);
 
-  // Client listings. Like skins, the signed document is kept whole in
+  // Client listings. Like themes, the signed document is kept whole in
   // `payload` and only the fields the browse page filters on are columns —
   // so a new field in the format costs no migration here.
   db.exec(`
@@ -96,22 +97,26 @@ function migrate(db: Database.Database) {
     );
   `);
 
+  // Theme listings (themes.md §5), keyed by author and name: see themes-db.ts.
   db.exec(`
-    CREATE TABLE IF NOT EXISTS skins (
-      id             TEXT PRIMARY KEY,
-      author_pubkey  TEXT NOT NULL,
-      name           TEXT NOT NULL,
-      base           TEXT NOT NULL,
-      swatch_bg      TEXT NOT NULL,
-      swatch_surface TEXT NOT NULL,
-      swatch_accent  TEXT NOT NULL,
-      payload        TEXT NOT NULL,
-      featured       INTEGER NOT NULL DEFAULT 0,
-      listed_at      INTEGER NOT NULL
+    CREATE TABLE IF NOT EXISTS themes (
+      id            TEXT PRIMARY KEY,
+      author_pubkey TEXT NOT NULL,
+      name          TEXT NOT NULL,
+      description   TEXT NOT NULL DEFAULT '',
+      payload       TEXT NOT NULL,
+      listed_at     INTEGER NOT NULL
     );
-    CREATE INDEX IF NOT EXISTS idx_skins_author ON skins(author_pubkey);
-    CREATE INDEX IF NOT EXISTS idx_skins_listed_at ON skins(listed_at DESC);
-    CREATE INDEX IF NOT EXISTS idx_skins_base ON skins(base);
+    CREATE INDEX IF NOT EXISTS idx_themes_listed_at ON themes(listed_at DESC);
+    CREATE TABLE IF NOT EXISTS other_themes (
+      id            TEXT PRIMARY KEY,
+      author_pubkey TEXT NOT NULL,
+      name          TEXT NOT NULL,
+      client        TEXT NOT NULL,
+      description   TEXT NOT NULL,
+      link          TEXT NOT NULL,
+      listed_at     INTEGER NOT NULL
+    );
   `);
 }
 
@@ -132,6 +137,7 @@ interface HubRow {
   member_count: number | null;
   online_count: number | null;
   counts_at: string | null;
+  theme_preview_url: string | null;
 }
 
 function rowToListing(row: HubRow): HubListing {
@@ -239,8 +245,8 @@ export function upsertHub(listing: Omit<HubListing, "listed_at" | "last_verified
   db.prepare(`
     INSERT INTO hubs (hub_pubkey, hub_url, name, description, icon, invite_only,
       min_security_level, invite_code, bio, tags, language, listed_at, last_verified_at,
-      member_count, online_count, counts_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      member_count, online_count, counts_at, theme_preview_url)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(hub_pubkey) DO UPDATE SET
       hub_url = excluded.hub_url,
       name = excluded.name,
@@ -255,7 +261,8 @@ export function upsertHub(listing: Omit<HubListing, "listed_at" | "last_verified
       last_verified_at = excluded.last_verified_at,
       member_count = excluded.member_count,
       online_count = excluded.online_count,
-      counts_at = excluded.counts_at
+      counts_at = excluded.counts_at,
+      theme_preview_url = excluded.theme_preview_url
   `).run(
     listing.hub_pubkey,
     listing.hub_url,
@@ -273,6 +280,7 @@ export function upsertHub(listing: Omit<HubListing, "listed_at" | "last_verified
     listing.member_count ?? null,
     listing.online_count ?? null,
     listing.member_count != null || listing.online_count != null ? now : null,
+    listing.theme_preview_url ?? null,
   );
 
   return getHub(listing.hub_pubkey)!;
@@ -282,97 +290,6 @@ export function deleteHub(pubkey: string): boolean {
   const db = getDb();
   const result = db.prepare("DELETE FROM hubs WHERE hub_pubkey = ?").run(pubkey);
   return result.changes > 0;
-}
-
-// ---- Skins ----
-
-export interface SkinRow {
-  id: string;
-  author_pubkey: string;
-  name: string;
-  base: string;
-  swatch_bg: string;
-  swatch_surface: string;
-  swatch_accent: string;
-  payload: string;
-  featured: number;
-  listed_at: number;
-}
-
-function skinRowToItem(row: SkinRow): SkinItem {
-  return { ...row };
-}
-
-function skinRowToListItem(row: SkinRow): SkinListItem {
-  const { payload: _payload, ...rest } = row;
-  void _payload;
-  return rest;
-}
-
-export function registerSkin(row: SkinRow): void {
-  const db = getDb();
-  db.prepare(`
-    INSERT OR REPLACE INTO skins
-      (id, author_pubkey, name, base, swatch_bg, swatch_surface, swatch_accent, payload, featured, listed_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(
-    row.id,
-    row.author_pubkey,
-    row.name,
-    row.base,
-    row.swatch_bg,
-    row.swatch_surface,
-    row.swatch_accent,
-    row.payload,
-    row.featured,
-    row.listed_at,
-  );
-}
-
-export function getSkin(id: string): SkinItem | null {
-  const db = getDb();
-  const row = db.prepare("SELECT * FROM skins WHERE id = ?").get(id) as SkinRow | undefined;
-  return row ? skinRowToItem(row) : null;
-}
-
-export function deleteSkin(id: string): boolean {
-  const db = getDb();
-  const result = db.prepare("DELETE FROM skins WHERE id = ?").run(id);
-  return result.changes > 0;
-}
-
-export interface ListSkinsOptions {
-  q?: string;
-  base?: string;
-  page?: number;
-}
-
-export function listSkins(opts: ListSkinsOptions = {}): { skins: SkinListItem[]; total: number } {
-  const db = getDb();
-  const page = Math.max(1, opts.page ?? 1);
-  const limit = 20;
-  const offset = (page - 1) * limit;
-
-  const conditions: string[] = [];
-  const params: unknown[] = [];
-
-  if (opts.q) {
-    conditions.push("name LIKE ?");
-    params.push(`%${opts.q}%`);
-  }
-  if (opts.base) {
-    conditions.push("base = ?");
-    params.push(opts.base);
-  }
-
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
-  const rows = db.prepare(
-    `SELECT * FROM skins ${where} ORDER BY featured DESC, listed_at DESC LIMIT ? OFFSET ?`
-  ).all([...params, limit, offset]) as SkinRow[];
-  const { count } = db.prepare(`SELECT COUNT(*) as count FROM skins ${where}`)
-    .get(params) as { count: number };
-
-  return { skins: rows.map(skinRowToListItem), total: count };
 }
 
 /* Facet counts for the hub rail.

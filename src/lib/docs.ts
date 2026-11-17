@@ -33,7 +33,7 @@ export const DOC_SECTIONS: DocSection[] = [
       d("browser-client", "Running it in a browser"),
       d("identity-recovery", "Recovering a lost identity"),
       d("data-export", "Exporting your data"),
-      d("custom-themes", "Themes and skins"),
+      d("themes", "Themes"),
       d("accessibility", "Accessibility"),
     ],
   },

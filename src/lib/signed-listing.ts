@@ -3,7 +3,7 @@ import { verifySignature } from "./verify";
 
 /* Shared plumbing for self-published listings.
  *
- * Skins and clients arrive the same way: a JSON document, plus a base64url
+ * Themes and clients arrive the same way: a JSON document, plus a base64url
  * Ed25519 signature over its exact bytes, signed by the key named inside the
  * document. The id is the content hash, so re-publishing an unchanged document
  * is idempotent and editing it produces a new id. */
@@ -56,6 +56,6 @@ export async function verifyListingSignature(
  * removes: a delete over the id alone never changes, so anyone who saw one
  * could remove the listing again after its owner re-published it.
  */
-export function deleteMessage(kind: "hub" | "client" | "skin" | "identity", id: string, listedAt: string | number): string {
+export function deleteMessage(kind: "hub" | "client" | "theme" | "other-theme" | "identity", id: string, listedAt: string | number): string {
   return `wavvon-directory/delete/v1:${kind}:${id}:${listedAt}`;
 }

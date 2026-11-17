@@ -174,6 +174,17 @@ export default async function HubsPage({
                   ) : null}
                 </div>
 
+                {hub.theme_preview_url ? (
+                  // The hub's own preview route, checked when the listing was accepted.
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={hub.theme_preview_url}
+                    alt={`Theme preview for ${hub.name}`}
+                    loading="lazy"
+                    className="aspect-video w-full rounded-lg border border-border object-cover"
+                  />
+                ) : null}
+
                 <p className="line-clamp-3 text-sm leading-relaxed text-text-muted">
                   {hub.bio || hub.description || "No description supplied."}
                 </p>

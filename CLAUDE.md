@@ -21,8 +21,8 @@ data/            local runtime database — gitignored, never committed
 scripts/
 ```
 
-The public surfaces are `/` (landing), `/hubs`, `/clients`, `/identities`,
-`/providers` and `/docs`. `/bots` is gone: the bot listing left with the bot
+The public surfaces are `/` (landing), `/hubs`, `/clients`, `/themes`,
+`/identities`, `/providers` and `/docs`. `/bots` is gone: the bot listing left with the bot
 subsystem, and `/identities` is what replaced it. Nothing else exists: no route
 is unreachable, and none should be.
 
@@ -101,7 +101,7 @@ about the hub. This site keeps its own small local catalog and `better-sqlite3`
 is the deliberate choice — don't "align" it with the server.
 
 **Every listing is signed, without exception.** A hub signs its own with the
-hub key; a client author and a skin author sign theirs; a bot signs its own
+hub key; a client author and a theme author sign theirs; a bot signs its own
 with the bot key. `src/lib/signed-listing.ts` is the one place that verifies.
 Deletion is proved the same way — a signature over `deleteMessage`, which
 names the id *and* the `listed_at` of the listing being removed, so a captured

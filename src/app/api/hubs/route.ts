@@ -3,7 +3,7 @@ import { listHubs, upsertHub, type HubSort } from "@/lib/db";
 import { verifySignature } from "@/lib/verify";
 import { fetchHubInfo, fetchHubCounts } from "@/lib/scrape";
 import { buildCanonicalPayload, currentNonce } from "@/lib/canonical";
-import { clientAddress, overWriteBudget, readSubmission, validateHubSubmission } from "@/lib/hub-submission";
+import { clientAddress, isThemePreviewUrl, overWriteBudget, readSubmission, validateHubSubmission } from "@/lib/hub-submission";
 import type { SubmitPayload } from "@/lib/types";
 
 export async function GET(req: NextRequest) {
@@ -50,7 +50,7 @@ export async function validateAndUpsert(body: SubmitPayload) {
   const { hub_url, tags, language, bio, invite_code, canonical_payload, hub_pubkey, signature } = body;
 
   // Replay protection: nonce must be within 5 minutes of now
-  let parsed: { nonce?: unknown } = {};
+  let parsed: { nonce?: unknown; theme_preview_url?: unknown } = {};
   try { parsed = JSON.parse(canonical_payload); } catch {
     return NextResponse.json({ error: "Invalid canonical_payload" }, { status: 400 });
   }
@@ -62,6 +62,11 @@ export async function validateAndUpsert(body: SubmitPayload) {
     return NextResponse.json({ error: "Nonce expired or invalid" }, { status: 400 });
   }
 
+  const theme_preview_url = parsed.theme_preview_url;
+  if (theme_preview_url !== undefined && !isThemePreviewUrl(theme_preview_url, hub_url)) {
+    return NextResponse.json({ error: "theme_preview_url must be the hub's own /hub/theme/<sha256>/preview" }, { status: 400 });
+  }
+
   // Verify the canonical payload matches what was signed
   const expected = buildCanonicalPayload({
     hub_url,
@@ -70,6 +75,7 @@ export async function validateAndUpsert(body: SubmitPayload) {
     bio: bio ?? "",
     nonce: parsed.nonce,
     invite_code,
+    theme_preview_url: theme_preview_url as string | undefined,
   });
   if (expected !== canonical_payload) {
     return NextResponse.json({ error: "canonical_payload mismatch" }, { status: 400 });
@@ -108,6 +114,7 @@ export async function validateAndUpsert(body: SubmitPayload) {
     bio: bio ?? "",
     tags: tags ?? [],
     language: language ?? "en",
+    theme_preview_url: (theme_preview_url as string | undefined) ?? null,
   });
 
   return null; // no error
