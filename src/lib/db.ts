@@ -118,6 +118,21 @@ function migrate(db: Database.Database) {
       listed_at     INTEGER NOT NULL
     );
   `);
+
+  // Language pack listings (language-packs.md §3), keyed by author, code and
+  // name: see languages-db.ts.
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS languages (
+      id            TEXT PRIMARY KEY,
+      author_pubkey TEXT NOT NULL,
+      code          TEXT NOT NULL,
+      name          TEXT NOT NULL,
+      description   TEXT NOT NULL DEFAULT '',
+      payload       TEXT NOT NULL,
+      listed_at     INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_languages_listed_at ON languages(listed_at DESC);
+  `);
 }
 
 interface HubRow {

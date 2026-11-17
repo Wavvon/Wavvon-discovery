@@ -41,6 +41,11 @@ Four public surfaces, plus the docs index that ties them together.
   download URL with its SHA-256 (the directory never hosts the package); the
   official client's theme picker reads them from `/api/themes`. Themes for
   other clients are a signed name, client, description and link.
+- **Languages** (`/languages`) — signed `wavvon.lang` listings: a language
+  pack's code, name, description, coverage and the client version it was made
+  against, with a download URL and its SHA-256 (the directory never hosts the
+  pack). Served at `/api/languages`; republishing the same author key, code and
+  name updates the listing.
 
 The site never probes a hub. A listing that has gone stale is reported by
 whoever noticed, which costs nothing and scales with readers rather than with
