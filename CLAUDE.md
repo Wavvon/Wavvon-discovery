@@ -22,7 +22,7 @@ scripts/
 ```
 
 The public surfaces are `/` (landing), `/hubs`, `/clients`, `/themes`,
-`/identities`, `/providers` and `/docs`. `/bots` is gone: the bot listing left with the bot
+`/languages`, `/identities`, `/providers` and `/docs`. `/bots` is gone: the bot listing left with the bot
 subsystem, and `/identities` is what replaced it. Nothing else exists: no route
 is unreachable, and none should be.
 

@@ -56,6 +56,6 @@ export async function verifyListingSignature(
  * removes: a delete over the id alone never changes, so anyone who saw one
  * could remove the listing again after its owner re-published it.
  */
-export function deleteMessage(kind: "hub" | "client" | "theme" | "other-theme" | "identity", id: string, listedAt: string | number): string {
+export function deleteMessage(kind: "hub" | "client" | "theme" | "other-theme" | "language" | "identity", id: string, listedAt: string | number): string {
   return `wavvon-directory/delete/v1:${kind}:${id}:${listedAt}`;
 }
