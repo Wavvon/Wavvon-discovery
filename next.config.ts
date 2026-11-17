@@ -23,6 +23,18 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   async headers() {
     return [
+      // Nothing under /api trusts a cookie: writes are signed by the key they
+      // name and reads are public, so any origin may call it. Next answers
+      // OPTIONS itself; these headers make that answer a CORS preflight.
+      {
+        source: "/api/:path*",
+        headers: [
+          { key: "Access-Control-Allow-Origin", value: "*" },
+          { key: "Access-Control-Allow-Methods", value: "GET, POST, PUT, DELETE, OPTIONS" },
+          { key: "Access-Control-Allow-Headers", value: "content-type, x-wavvon-signature" },
+          { key: "Access-Control-Max-Age", value: "86400" },
+        ],
+      },
       {
         source: "/:path*",
         headers: [
