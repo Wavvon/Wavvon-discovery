@@ -1,4 +1,3 @@
-import Link from "next/link";
 
 /* Filter rails, rendered on the server.
  *
@@ -75,7 +74,7 @@ function OptionRow({
   href: string;
 }) {
   return (
-    <Link
+    <a
       href={href}
       aria-pressed={checked}
       className="flex items-center gap-2.5 text-sm text-text-dim transition-colors hover:text-text"
@@ -85,7 +84,7 @@ function OptionRow({
       {option.count !== undefined ? (
         <span className="ml-auto font-mono text-xs text-text-faint">{option.count}</span>
       ) : null}
-    </Link>
+    </a>
   );
 }
 
@@ -239,7 +238,7 @@ export function OpenFacet({
           {selected.map((value) => {
             const label = options.find((o) => o.value === value)?.label ?? value;
             return (
-              <Link
+              <a
                 key={value}
                 href={toggleHref(basePath, params, paramKey, value)}
                 className="inline-flex items-center gap-1.5 rounded-full bg-accent py-[3px] pr-[5px] pl-2.5 text-accent-text hover:text-accent-text"
@@ -258,7 +257,7 @@ export function OpenFacet({
                 >
                   <path d="m7 7 10 10M17 7 7 17" />
                 </svg>
-              </Link>
+              </a>
             );
           })}
         </div>
@@ -287,12 +286,12 @@ export function OpenFacet({
       </div>
 
       {hiddenCount > 0 ? (
-        <Link
+        <a
           href={toggleHref(basePath, params, `${paramKey}_all`, "1")}
           className="font-mono text-xs text-text-muted hover:text-text"
         >
           show all {options.length} &rarr;
-        </Link>
+        </a>
       ) : null}
 
       {note ? <p className="text-xs leading-relaxed text-text-faint">{note}</p> : null}
@@ -302,9 +301,9 @@ export function OpenFacet({
 
 export function ResetFilters({ href }: { href: string }) {
   return (
-    <Link href={href} className="font-mono text-xs text-text-muted hover:text-text">
+    <a href={href} className="font-mono text-xs text-text-muted hover:text-text">
       reset filters
-    </Link>
+    </a>
   );
 }
 

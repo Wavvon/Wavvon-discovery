@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 
 /** Page title band under the header. */
@@ -43,7 +42,6 @@ export function Avatar({
   // A remote icon would show its host every visitor, so only inline images render.
   if (icon?.startsWith("data:image/")) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={icon}
         alt=""
@@ -78,9 +76,9 @@ export function Tag({ label, href }: { label: string; href?: string }) {
   const className =
     "rounded-full border border-border bg-surface px-2.5 py-[3px] font-mono text-[11px] text-text-muted";
   return href ? (
-    <Link href={href} className={`${className} transition-colors hover:border-border-strong hover:text-text`}>
+    <a href={href} className={`${className} transition-colors hover:border-border-strong hover:text-text`}>
       {label}
-    </Link>
+    </a>
   ) : (
     <span className={className}>{label}</span>
   );
@@ -111,7 +109,7 @@ export function PillLink({
 }) {
   const base = "inline-flex items-center justify-center gap-2 rounded-full text-sm font-semibold px-6 py-3.5";
   return (
-    <Link
+    <a
       href={href}
       className={
         variant === "primary"
@@ -120,7 +118,7 @@ export function PillLink({
       }
     >
       {children}
-    </Link>
+    </a>
   );
 }
 

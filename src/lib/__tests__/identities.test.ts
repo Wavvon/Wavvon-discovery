@@ -1,13 +1,12 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import Database from "better-sqlite3";
 import * as ed from "@noble/ed25519";
-import { NextRequest } from "next/server";
 import { initDb } from "../db";
 import { getIdentity, listIdentities } from "../identities-db";
 import { isHttpUrl, isPublicHttpsUrl, validateIdentity } from "../identity";
 import { bytesToHex, deleteMessage } from "../signed-listing";
-import { POST } from "@/app/api/identities/route";
-import { DELETE } from "@/app/api/identities/[pubkey]/route";
+import { POST } from "@/api/identities";
+import { DELETE } from "@/api/identity";
 import type { IdentityDoc } from "../types";
 
 function b64url(bytes: Uint8Array): string {
@@ -42,7 +41,7 @@ async function sign(message: string, secretKey: Uint8Array): Promise<string> {
 
 async function publish(d: IdentityDoc, secretKey: Uint8Array, sigOver?: string) {
   const payload = JSON.stringify(d);
-  const req = new NextRequest("http://localhost/api/identities", {
+  const req = new Request("http://localhost/api/identities", {
     method: "POST",
     body: JSON.stringify({ payload, sig: await sign(sigOver ?? payload, secretKey) }),
   });
@@ -50,7 +49,7 @@ async function publish(d: IdentityDoc, secretKey: Uint8Array, sigOver?: string) 
 }
 
 async function remove(hex: string, sig?: string) {
-  const req = new NextRequest(`http://localhost/api/identities/${hex}`, {
+  const req = new Request(`http://localhost/api/identities/${hex}`, {
     method: "DELETE",
     headers: sig ? { "x-wavvon-signature": sig } : {},
   });
