@@ -59,36 +59,31 @@ Requires [Node 20+](https://nodejs.org).
 git clone https://github.com/Wavvon/Wavvon-discovery
 cd Wavvon-discovery
 npm install
-npm run dev
-# Open http://localhost:3000
+npm run dev        # http://localhost:3000; `npm run dev:css` in a second shell rebuilds styles on change
 ```
 
 Production:
 
 ```bash
-npm run build
-npm start
+npm run build      # public/styles.css + dist/server.js
+npm start          # PORT, default 3000
 ```
 
 State lives in a single SQLite database at `./data/discovery.db`
 (created automatically); set `WAVVON_DISCOVERY_DATA_DIR` to put it
 elsewhere. There is no cron job and no scheduled work of any kind.
 
-Documentation pages are fetched from the Wavvon-docs repository at build
-time and revalidated hourly. If that fetch fails the page says so and
-links to GitHub, so the site still builds with no network.
+Documentation pages are fetched from the Wavvon-docs repository on first
+view and kept for an hour. If that fetch fails the page says so and links
+to GitHub.
 
 Hubs choose which directory they announce to via the `discovery_url`
 setting in [Wavvon-server](https://github.com/Wavvon/Wavvon-server).
 
-> Note for contributors: this repo pins a Next.js version with breaking
-> changes from older releases. Read the bundled guide under
-> `node_modules/next/dist/docs/` before touching the App Router code.
-
 ## Tech
 
-Next.js (App Router) · React · TypeScript · Tailwind CSS · SQLite via
-better-sqlite3 · `@noble/ed25519` for signature verification.
+Hono · React (server rendering only) · TypeScript · Tailwind CSS · SQLite
+via better-sqlite3 · `@noble/ed25519` for signature verification.
 
 ```bash
 npx tsc --noEmit   # type check

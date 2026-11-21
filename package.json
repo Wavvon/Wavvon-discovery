@@ -3,34 +3,40 @@
   "version": "0.3.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "npm run css && tsx watch src/server.tsx",
+    "dev:css": "tailwindcss -i src/styles.css -o public/styles.css --watch",
+    "css": "tailwindcss -i src/styles.css -o public/styles.css --minify",
+    "build": "npm run css && esbuild src/server.tsx --bundle --platform=node --format=esm --packages=external --outfile=dist/server.js",
+    "start": "node dist/server.js",
     "lint": "eslint",
     "test": "vitest run"
   },
   "dependencies": {
+    "@hono/node-server": "^2.1.11",
     "@noble/ed25519": "^3.1.0",
     "@types/markdown-it": "^14.2.0",
     "better-sqlite3": "^12.9.0",
+    "hono": "^4.13.19",
     "markdown-it": "^15.0.1",
-    "next": "^16.4.5",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
+    "@tailwindcss/cli": "^4.3.5",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "esbuild": "^0.28.2",
     "eslint": "^9",
-    "eslint-config-next": "^16.4.5",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5",
+    "typescript-eslint": "^8.73.0",
     "vitest": "^4.1.12"
   },
   "overrides": {
     "minimatch@>=7 <11.0.1": "^11.0.1"
-  }
+  },
+  "type": "module"
 }

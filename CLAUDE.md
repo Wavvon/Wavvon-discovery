@@ -5,7 +5,8 @@ Guidance for Claude Code (claude.ai/code) working in this repository.
 ## What this repo is
 
 **Wavvon-discovery** — the optional public hub directory site for Wavvon, a
-self-hosted, federated voice+text community platform. Next.js 16 + React, with a
+self-hosted, federated voice+text community platform. Hono + React
+rendered on the server, with a
 local SQLite store (`better-sqlite3`) and Ed25519 signature verification
 (`@noble/ed25519`) for the listings hubs and farms publish.
 
@@ -14,7 +15,11 @@ is on the critical path of running a hub or a client, and the site must never
 become a coordination point the network depends on.
 
 ```
-src/app/         Next.js App Router routes and pages
+src/server.tsx   the whole routing table, security headers, CORS
+src/pages/       one module per page; `layout.tsx` is the HTML shell
+src/api/         JSON route handlers: Request in, Response out
+src/styles.css   Tailwind input; `npm run css` writes public/styles.css
+public/          static files: fonts, favicon, copy.js (the only script)
 src/components/  React components — shell, filter rails, shared primitives
 src/lib/         data access, signature verification, facet vocabularies
 data/            local runtime database — gitignored, never committed
@@ -86,9 +91,14 @@ Don't reintroduce i18n here. If it ever comes back, the thing that would make
 it worth it is publishers declaring translations of their own listing text —
 start there, not with the chrome.
 
-**Next.js 16 differs significantly from earlier versions.** Check
-`node_modules/next/dist/docs/` before writing Next.js-specific code rather than
-relying on recalled patterns from 13/14/15.
+**There is no framework, on purpose.** Next.js was removed on 2026-11-21: the
+site is a dozen server-rendered pages and some JSON routes, and Next was
+writing files into the repo and changing its API under it at every major. A
+page is a module exporting a default component (async allowed, since the server
+awaits it before rendering) plus `metadata` or `generateMetadata`; it is wired
+by one line in `src/server.tsx`. React renders to a string and never hydrates,
+so hooks and event handlers do nothing: interactivity is a `data-` attribute
+plus a few lines in `public/copy.js`.
 
 **Nothing has been released, so there is no schema to preserve.** `migrate()`
 creates what the site needs and nothing else — no `DROP TABLE IF EXISTS` to

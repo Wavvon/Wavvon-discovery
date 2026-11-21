@@ -1,11 +1,8 @@
-"use client";
-
-import { useState } from "react";
-
 /**
  * Copies one string. The whole flow for adding an app is "copy this key, paste
  * it into your hub", so this is a load-bearing control rather than a nicety.
- */
+ *
+ * Rendered on the server; public/copy.js wires every `data-copy` button. */
 export function CopyButton({
   value,
   label = "copy",
@@ -15,24 +12,11 @@ export function CopyButton({
   label?: string;
   variant?: "ghost" | "primary";
 }) {
-  const [copied, setCopied] = useState(false);
-
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(value);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Clipboard blocked (insecure origin, denied permission). The value is
-      // on screen either way, so say nothing and let the reader select it.
-    }
-  }
-
   const primary = variant === "primary";
   return (
     <button
       type="button"
-      onClick={copy}
+      data-copy={value}
       aria-live="polite"
       className={
         primary
@@ -54,7 +38,7 @@ export function CopyButton({
         <rect x="9" y="9" width="11" height="11" rx="2" />
         <path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5V4.5A1.5 1.5 0 0 1 4.5 3h9A1.5 1.5 0 0 1 15 4.5V5" />
       </svg>
-      {copied ? "copied" : label}
+      <span data-copy-label>{label}</span>
     </button>
   );
 }

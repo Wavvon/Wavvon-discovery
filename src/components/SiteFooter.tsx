@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Mark } from "./Mark";
 import { DOCS, GITHUB } from "@/lib/links";
 
@@ -63,13 +62,13 @@ export function SiteFooter() {
                 {column.title}
               </span>
               {column.links.map(({ label, href }) => (
-                <Link
+                <a
                   key={label}
                   href={href}
                   className="text-sm text-text-muted transition-colors hover:text-text"
                 >
                   {label}
-                </Link>
+                </a>
               ))}
             </div>
           ))}

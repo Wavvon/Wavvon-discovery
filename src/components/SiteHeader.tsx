@@ -1,7 +1,3 @@
-"use client";
-
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { Mark } from "./Mark";
 
 const NAV = [
@@ -14,22 +10,20 @@ const NAV = [
   { href: "/docs", label: "Docs" },
 ] as const;
 
-export function SiteHeader() {
-  const pathname = usePathname();
-
+export function SiteHeader({ pathname }: { pathname: string }) {
   return (
     <header className="flex h-[68px] items-center gap-9 border-b border-border px-12 max-sm:px-6">
-      <Link href="/" className="flex items-center gap-[11px]">
+      <a href="/" className="flex items-center gap-[11px]">
         <Mark />
         <span className="font-mono text-[18px] font-bold tracking-[0.5px] text-text">wavvon</span>
-      </Link>
+      </a>
 
       <nav className="ml-auto flex items-center gap-7 text-sm font-medium max-sm:gap-4 max-sm:text-[13px]">
         {NAV.map(({ href, label }) => {
           // `/hubs/<pubkey>` should still light up `Hubs`.
           const active = pathname === href || pathname.startsWith(`${href}/`);
           return (
-            <Link
+            <a
               key={href}
               href={href}
               aria-current={active ? "page" : undefined}
@@ -40,7 +34,7 @@ export function SiteHeader() {
               }
             >
               {label}
-            </Link>
+            </a>
           );
         })}
       </nav>

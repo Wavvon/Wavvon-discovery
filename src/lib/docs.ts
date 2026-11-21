@@ -128,12 +128,20 @@ export function editUrl(entry: DocEntry): string {
  * reached — the page then says so and points at GitHub, rather than
  * pretending the document does not exist.
  */
+const DOC_TTL_MS = 60 * 60 * 1000;
+const docCache = new Map<string, { at: number; text: string }>();
+
 export async function fetchDoc(entry: DocEntry): Promise<string | null> {
+  const cached = docCache.get(entry.path);
+  if (cached && Date.now() - cached.at < DOC_TTL_MS) return cached.text;
   try {
-    const res = await fetch(rawUrl(entry), { next: { revalidate: 3600 } });
-    if (!res.ok) return null;
-    return await res.text();
+    const res = await fetch(rawUrl(entry));
+    if (!res.ok) return cached?.text ?? null;
+    const text = await res.text();
+    docCache.set(entry.path, { at: Date.now(), text });
+    return text;
   } catch {
-    return null;
+    // A stale copy beats the "could not be fetched" note.
+    return cached?.text ?? null;
   }
 }
