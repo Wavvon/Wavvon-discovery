@@ -21,6 +21,9 @@ const csp = [
 const nextConfig: NextConfig = {
   serverExternalPackages: ["better-sqlite3"],
   poweredByHeader: false,
+  // `next dev` writes an AGENTS.md when it detects an AI agent; CLAUDE.md
+  // already carries the same pointer to node_modules/next/dist/docs/.
+  agentRules: false,
   async headers() {
     return [
       // Nothing under /api trusts a cookie: writes are signed by the key they
